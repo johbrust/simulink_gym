@@ -6,8 +6,6 @@
 
 - How to define `actions` and `observations`?
 - How to implement the `render` method?
-- Do the TCP ports for sending and receiving need separate threads?
-- How to initialize the Simulink model?
 
 ---
 
@@ -21,8 +19,9 @@ In order to use a Simulink model with this wrapper the model has to be prepared.
 
 __To Do__:
 
-- Sample time?
-- Solver?
+- [Set up the model](https://www.mathworks.com/help/simulink/slref/setmodelparameter.html)
+  - Sample time?
+  - Solver?
 
 ### TCP/IP Communication
 
@@ -32,4 +31,4 @@ __To Do__:
 
 - Block sample time?
 - Block parameters?
-- Byte order: Intel x86 is Little Endian $\rightarrow$ the `TCP/IP Send` block is configured for Little Endian, the `TCP/IP Receive` block receives integer values and, therefore, does not need byte order configuration
+- Byte order: Intel x86 is Little Endian, therefore the `TCP/IP Send` block is configured for Little Endian, the `TCP/IP Receive` block receives integer values and, therefore, does not need byte order configuration
