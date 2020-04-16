@@ -7,11 +7,16 @@ import struct
 import array
 from collections import namedtuple
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s (%(name)s, %(levelname)s): %(message)s',
-                    datefmt='%d-%b-%y %H:%M:%S')
-
 block = namedtuple('block', ['path', 'param', 'value'])
+
+# Setup logging:
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler()
+formatter = logging.Formatter(fmt='%(asctime)s (%(name)s, %(threadName)s, %(levelname)s): %(message)s',
+                              datefmt='%d-%b-%y %H:%M:%S')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 
 class Environment(gym.Env):
@@ -36,18 +41,18 @@ class Environment(gym.Env):
 
         # Setup Matlab engine:
         if not self.model_debug:
-            logging.debug('Starting Matlab engine')
+            logger.debug('Starting Matlab engine')
             self.matlab_engine = matlab.engine.start_matlab()
-            logging.debug('Adding path to Matlab path: %s' % absolute_path)
+            logger.debug('Adding path to Matlab path: %s' % absolute_path)
             self.matlab_path = self.matlab_engine.addpath(absolute_path)
-            logging.debug('Creating simulation input object for model %s' % self.env_name)
+            logger.debug('Creating simulation input object for model %s' % self.env_name)
             self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
 
     def __del__(self):
-        logging.debug('Deleting Environment')
+        logger.debug('Deleting Environment')
         # Close sockets:
         self.close_sockets()
-        logging.debug('Deleted Environment')
+        logger.debug('Deleted Environment')
         # Close matlab engine:
         self.matlab_engine.quit()
 
@@ -66,7 +71,7 @@ class Environment(gym.Env):
 
         # Receive data:
         recv_data = self.recv_socket.receive()
-        logging.debug('Received data: %s' % recv_data)
+        logger.debug('Received data: %s' % recv_data)
         # When the simulation is done an empty message is sent:
         if not recv_data:
             observation = None
@@ -85,7 +90,7 @@ class Environment(gym.Env):
 
     def reset(self):
         if not self.model_debug and self.simulation_thread.is_alive():
-            logging.info('Waiting for simulation to finish')
+            logger.info('Waiting for simulation to finish')
             # Step through simulation until it is finished:
             done = False
             while not done:
@@ -100,27 +105,27 @@ class Environment(gym.Env):
         # Create and start simulation thread:
         if not self.model_debug:
             # Create and start simulation thread:
-            logging.debug('Creating simulation thread')
+            logger.debug('Creating simulation thread')
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
                                                       args=(self.sim_input,), daemon=True)
-            logging.debug('Starting simulation thread')
+            logger.debug('Starting simulation thread')
             self.simulation_thread.start()
-            logging.debug('Simulation thread started')
+            logger.debug('Simulation thread started')
 
         # Wait for connection to be established:
-        logging.debug('Waiting for connection')
+        logger.debug('Waiting for connection')
         self.send_socket_thread.join()
         self.recv_socket_thread.join()
-        logging.debug('Connection established')
+        logger.debug('Connection established')
 
         # Receive initial data:
         recv_data = self.recv_socket.receive()
         if recv_data:
-            logging.debug('Received initial data: %s' % recv_data)
+            logger.debug('Received initial data: %s' % recv_data)
             observation = recv_data[0:-2]  # observations are everything except the second to last entry
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
         else:
-            logging.error('No initial data received')
+            logger.error('No initial data received')
             observation = None
 
         # TODO: observation as np.array?
@@ -132,29 +137,29 @@ class Environment(gym.Env):
 
     def set_block_param(self, _block):
         if not self.model_debug:
-            logging.info('Setting parameter %s of block %s to value %s' % (_block.param, _block.path, str(_block.value)))
+            logger.info('Setting parameter %s of block %s to value %s' % (_block.param, _block.path, str(_block.value)))
             self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
                                                                   str(_block.value))
 
     def open_sockets(self):
         if self.recv_socket_thread.is_alive():
-            logging.debug('recv_socket_thread already running')
+            logger.debug('recv_socket_thread already running')
         else:
             if self.recv_socket.is_connected():
-                logging.debug('recv_socket still connected, closing socket')
+                logger.debug('recv_socket still connected, closing socket')
                 self.recv_socket.close()
-            logging.debug('Creating and starting recv_socket thread')
+            logger.debug('Creating and starting recv_socket thread')
             self.recv_socket_thread = threading.Thread(name='recv_socket.connect()', target=self.recv_socket.connect,
                                                        daemon=True)
             self.recv_socket_thread.start()
 
         if self.send_socket_thread.is_alive():
-            logging.debug('send_socket_thread already running')
+            logger.debug('send_socket_thread already running')
         else:
             if self.send_socket.is_connected():
-                logging.debug('send_socket still connected, closing socket')
+                logger.debug('send_socket still connected, closing socket')
                 self.send_socket.close()
-            logging.debug('Creating and starting send_socket thread')
+            logger.debug('Creating and starting send_socket thread')
             self.send_socket_thread = threading.Thread(name='send_socket.connect()', target=self.send_socket.connect,
                                                        daemon=True)
             self.send_socket_thread.start()
@@ -170,10 +175,10 @@ class Environment(gym.Env):
     def stop_simulation(self):
         # The following code does not work. Another solution has to be found!
         # if not self.model_debug:
-        #     logging.debug('Stopping simulation')
+        #     logger.debug('Stopping simulation')
         #     current_simulation = self.matlab_engine.gcs
         #     self.matlab_engine.set_param(current_simulation, 'SimulationCommand', 'stop')
-        #     logging.debug('Simulation stopped')
+        #     logger.debug('Simulation stopped')
         pass
 
 
@@ -182,7 +187,7 @@ class CommSocket:
     HOST = 'localhost'
 
     def __init__(self, port):
-        logging.debug('Setting up server on port %d' % port)
+        logger.debug('Setting up server on port %d' % port)
         self.port = port
         self.connection = None
         self.address = None
@@ -190,17 +195,17 @@ class CommSocket:
 
     def connect(self, timeout=60):
         if self.is_connected():
-            logging.info('Socket already connected')
+            logger.info('Socket already connected')
         else:
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server.setblocking(False)
             self.server.bind((self.HOST, self.port))
             self.server.listen(1)
-            logging.debug('Listening on port %d' % self.port)
+            logger.debug('Listening on port %d' % self.port)
             self.server.settimeout(timeout)
             try:
                 self.connection, self.address = self.server.accept()
-                logging.debug('Connection established with %s' % self.connection)
+                logger.debug('Connection established with %s' % self.connection)
             except socket.timeout:
                 self.server.shutdown(socket.SHUT_RDWR)
                 self.server.close()
@@ -212,24 +217,24 @@ class CommSocket:
     def receive(self):
         if self.is_connected():
             data = self.connection.recv(2048)
-            # logging.debug('Received data: %s' % str(data))
+            # self.__logger.debug('Received data: %s' % str(data))
             data_array = array.array('d', data)
             return data_array
         else:
-            logging.error('Socket not connected, nothing to receive')
+            logger.error('Socket not connected, nothing to receive')
             return None
 
     def send(self, data):
         if self.is_connected():
             msg = struct.pack('<B', data)
-            logging.debug('Sending message: ' + str(msg))
+            logger.debug('Sending message: ' + str(msg))
             self.connection.sendall(msg)
         else:
-            logging.error('Socket not connected, data not sent')
+            logger.error('Socket not connected, data not sent')
 
     def close(self):
         if self.connection is not None:
-            logging.debug('Closing connection %s at port %d' % (self.connection, self.port))
+            logger.debug('Closing connection %s at port %d' % (self.connection, self.port))
             self.connection.shutdown(socket.SHUT_RDWR)
             self.connection.close()
             self.server.shutdown(socket.SHUT_RDWR)
@@ -237,7 +242,7 @@ class CommSocket:
             self.connection = None
             self.address = None
         else:
-            logging.debug('Socket not connected, nothing to close')
+            logger.debug('Socket not connected, nothing to close')
 
     def is_connected(self):
         return False if self.connection is None else True
