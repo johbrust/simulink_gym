@@ -5,6 +5,7 @@ import matlab.engine
 import threading
 import struct
 import array
+import numpy as np
 from collections import namedtuple
 
 block = namedtuple('block', ['path', 'param', 'value'])
@@ -13,7 +14,8 @@ block = namedtuple('block', ['path', 'param', 'value'])
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 console_handler = logging.StreamHandler()
-formatter = logging.Formatter(fmt='%(asctime)s (%(name)s, %(threadName)s, %(levelname)s): %(message)s',
+formatter = logging.Formatter(fmt='%(asctime)s (%(threadName)s, %(levelname)s), (%(funcName)s: %(lineno)d): %('
+                                  'message)s',
                               datefmt='%d-%b-%y %H:%M:%S')
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
@@ -29,6 +31,7 @@ class Environment(gym.Env):
         self.model_debug = model_debug
         self.env_name = env_name
         self.simulation_time = 0
+        self.done = False
 
         # Create TCP/IP sockets and empty threads:
         self.recv_socket = CommSocket(self.RECV_PORT)
@@ -41,18 +44,18 @@ class Environment(gym.Env):
 
         # Setup Matlab engine:
         if not self.model_debug:
-            logger.debug('Starting Matlab engine')
+            logger.info('Starting Matlab engine')
             self.matlab_engine = matlab.engine.start_matlab()
-            logger.debug('Adding path to Matlab path: %s' % absolute_path)
+            logger.info('Adding path to Matlab path: %s' % absolute_path)
             self.matlab_path = self.matlab_engine.addpath(absolute_path)
-            logger.debug('Creating simulation input object for model %s' % self.env_name)
+            logger.info('Creating simulation input object for model %s' % self.env_name)
             self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
 
     def __del__(self):
-        logger.debug('Deleting Environment')
+        logger.info('Deleting Environment')
         # Close sockets:
         self.close_sockets()
-        logger.debug('Deleted Environment')
+        logger.info('Deleted Environment')
         # Close matlab engine:
         self.matlab_engine.quit()
 
@@ -71,30 +74,28 @@ class Environment(gym.Env):
 
         # Receive data:
         recv_data = self.recv_socket.receive()
-        logger.debug('Received data: %s' % recv_data)
         # When the simulation is done an empty message is sent:
         if not recv_data:
             observation = None
             reward = 0
             info = {'simulation timestamp': str(self.simulation_time)}
-            done = True
+            self.done = True
         else:
             observation = recv_data[0:-2]  # observations are everything except the second to last entry
             reward = recv_data[-2]  # reward is second to last entry
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
             info = {'simulation timestamp': str(self.simulation_time)}
-            done = False
+            self.done = False
 
         # TODO: observation as np.array?
-        return observation, reward, done, info
+        return np.array(observation), reward, self.done, info
 
     def reset(self):
         if not self.model_debug and self.simulation_thread.is_alive():
             logger.info('Waiting for simulation to finish')
             # Step through simulation until it is finished:
-            done = False
-            while not done:
-                _, _, done, _ = self.step(0)
+            while not self.done:
+                _, _, self.done, _ = self.step(0)
             self.simulation_thread.join()
             # Stopping does not work yet:
             # self.stop_simulation()
@@ -217,7 +218,7 @@ class CommSocket:
     def receive(self):
         if self.is_connected():
             data = self.connection.recv(2048)
-            # self.__logger.debug('Received data: %s' % str(data))
+            logger.debug('Received data: %s' % str(data))
             data_array = array.array('d', data)
             return data_array
         else:
