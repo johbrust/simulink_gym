@@ -92,7 +92,7 @@ class Environment(gym.Env):
 
     def reset(self):
         if not self.model_debug and self.simulation_thread.is_alive():
-            logger.info('Waiting for simulation to finish')
+            logger.debug('Waiting for simulation to finish')
             # Step through simulation until it is finished:
             while not self.done:
                 _, _, self.done, _ = self.step(0)
