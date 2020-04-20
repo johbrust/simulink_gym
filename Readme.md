@@ -25,10 +25,16 @@ __To Do__:
 
 ### TCP/IP Communication
 
-The wrapper communicates with the model via TCP/IP. The _Instrument Control Toolbox_ provides the [`TCP/IP Send`](https://www.mathworks.com/help/instrument/tcpipsend.html) and [`TCP/IP Receive`](https://www.mathworks.com/help/instrument/tcpipreceive.html) blocks for this communication. By specifying the _Priority_ of the blocks, the execution order of the blocks can be controlled. It is necessary that the _TCP/IP Receive_ block is executed before the _TCP/IP Send_ block, because the model receives the action first and then simulates the model and sends the observations back to the wrapper.
+The wrapper communicates with the model via TCP/IP. The _Instrument Control Toolbox_ provides the [`TCP/IP Send`](https://www.mathworks.com/help/instrument/tcpipsend.html) and [`TCP/IP Receive`](https://www.mathworks.com/help/instrument/tcpipreceive.html) blocks for this communication. By specifying the _Priority_ of the blocks, the execution order of the blocks can be controlled. It is necessary that the _TCP/IP Send_ block is executed before the _TCP/IP Receive_ block, because the initial observation is received before any simulation is done.
 
 __To Do__:
 
 - Block sample time?
 - Block parameters?
 - Byte order: Intel x86 is Little Endian, therefore the `TCP/IP Send` block is configured for Little Endian, the `TCP/IP Receive` block receives integer values and, therefore, does not need byte order configuration
+
+## Running the Simulink Model
+
+### `done` Flag
+
+An environment returns the `done` flag, when the episode is finished. The Simulink simulation returns an empty TCP/IP message, when the simulation stopped. But this is only sent after the last simulation step (i.e., at time `t_end + 1`). Therefore, if the stepping through the simulation is done in a `while` loop, the return values of the last call of `env.step` (the step returning with `done` set to `true`) are no new values and, therefore, disposable.
