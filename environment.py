@@ -88,7 +88,7 @@ class Environment(gym.Env):
             self.done = False
 
         # TODO: observation as np.array?
-        return np.array(observation), reward, self.done, info
+        return np.array([observation]), reward, self.done, info
 
     def reset(self):
         if not self.model_debug and self.simulation_thread.is_alive():
@@ -130,7 +130,7 @@ class Environment(gym.Env):
             observation = None
 
         # TODO: observation as np.array?
-        return observation
+        return np.array([observation])
 
     def render(self, mode='human'):
         # TODO: implement render()
