@@ -142,7 +142,13 @@ class Environment(gym.Env):
             self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
                                                                   str(_block.value))
 
+    def set_model_param(self, param, value):
+        if not self.model_debug:
+            logger.info('Setting model parameter %s to value %s' % (param, str(value)))
+            self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
+
     def open_sockets(self):
+        logger.debug('Opening sockets')
         if self.recv_socket_thread.is_alive():
             logger.debug('recv_socket_thread already running')
         else:
@@ -166,6 +172,7 @@ class Environment(gym.Env):
             self.send_socket_thread.start()
 
     def close_sockets(self):
+        logger.debug('Closing sockets')
         if self.recv_socket_thread.is_alive():
             self.recv_socket_thread.join()
         self.recv_socket.close()
