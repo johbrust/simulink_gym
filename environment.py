@@ -5,12 +5,14 @@ import matlab.engine
 import threading
 import struct
 import array
-import numpy as np
 from collections import namedtuple
+from observation import Observations
+from action import Actions
+
 
 block = namedtuple('block', ['path', 'param', 'value'])
 
-# Setup logging:
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 console_handler = logging.StreamHandler()
@@ -32,6 +34,8 @@ class Environment(gym.Env):
         self.env_name = env_name
         self.simulation_time = 0
         self.done = False
+        self.observations = self.define_observations()
+        self.actions = self.define_actions()
 
         # Create TCP/IP sockets and empty threads:
         self.recv_socket = CommSocket(self.RECV_PORT)
@@ -51,6 +55,15 @@ class Environment(gym.Env):
             logger.info('Creating simulation input object for model %s' % self.env_name)
             self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
 
+    def define_observations(self) -> Observations:
+        raise NotImplementedError
+
+    def define_actions(self) -> Actions:
+        raise NotImplementedError
+
+    def calculate_reward(self):
+        raise NotImplementedError
+
     def __del__(self):
         logger.info('Deleting Environment')
         # Close sockets:
@@ -62,33 +75,30 @@ class Environment(gym.Env):
     def step(self, action):
         """
         TODO
-
         :param action:
-        :return: observation:
-                 reward:
-                 done:
-                 info: dictionary containing simulation timestamp
+        :return:
         """
 
-        self.send_socket.send(action)
+        self.actions.update_current_action_index(action)
+        self.send_socket.send(self.actions.current_action_index)
 
         # Receive data:
         recv_data = self.recv_socket.receive()
         # When the simulation is done an empty message is sent:
         if not recv_data:
-            observation = None
+            self.observations.update_observations(None)
             reward = 0
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = True
         else:
-            observation = recv_data[0:-2]  # observations are everything except the second to last entry
-            reward = recv_data[-2]  # reward is second to last entry
+            # Observations are everything except the second to last entry:
+            self.observations.update_observations(recv_data[0:-1])
+            reward = self.calculate_reward()
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = False
 
-        # TODO: observation as np.array?
-        return np.array([observation]), reward, self.done, info
+        return self.observations.get_current_obs_nparray(), reward, self.done, info
 
     def reset(self):
         if not self.model_debug and self.simulation_thread.is_alive():
@@ -123,14 +133,14 @@ class Environment(gym.Env):
         recv_data = self.recv_socket.receive()
         if recv_data:
             logger.debug('Received initial data: %s' % recv_data)
-            observation = recv_data[0:-2]  # observations are everything except the second to last entry
+            # Observations are everything except the second to last entry:
+            self.observations.update_observations(recv_data[0:-1])
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
         else:
             logger.error('No initial data received')
-            observation = None
+            self.observations.update_observations(None)
 
-        # TODO: observation as np.array?
-        return np.array([observation])
+        return self.observations.get_current_obs_nparray()
 
     def render(self, mode='human'):
         # TODO: implement render()
