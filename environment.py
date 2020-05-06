@@ -211,7 +211,7 @@ class CommSocket:
         self.address = None
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def connect(self, timeout=60):
+    def connect(self, timeout=300):
         if self.is_connected():
             logger.info('Socket already connected')
         else:
@@ -235,7 +235,7 @@ class CommSocket:
     def receive(self):
         if self.is_connected():
             data = self.connection.recv(2048)
-            logger.debug('Received data: %s' % str(data))
+            # logger.debug('Received data: %s' % str(data))
             data_array = array.array('d', data)
             return data_array
         else:
@@ -245,7 +245,7 @@ class CommSocket:
     def send(self, data):
         if self.is_connected():
             msg = struct.pack('<B', data)
-            logger.debug('Sending message: ' + str(msg))
+            # logger.debug('Sending message: ' + str(msg))
             self.connection.sendall(msg)
         else:
             logger.error('Socket not connected, data not sent')
