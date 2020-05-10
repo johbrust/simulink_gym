@@ -115,6 +115,8 @@ class Environment(gym.Env):
 
         # Create and start simulation thread:
         if not self.model_debug:
+            # Set initial values:
+            self.set_random_initial_values()
             # Create and start simulation thread:
             logger.debug('Creating simulation thread')
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
@@ -151,6 +153,10 @@ class Environment(gym.Env):
             logger.info('Setting parameter %s of block %s to value %s' % (_block.param, _block.path, str(_block.value)))
             self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
                                                                   str(_block.value))
+
+    def set_random_initial_values(self):
+        # Can be implemented by subclass:
+        pass
 
     def set_model_param(self, param, value):
         if not self.model_debug:
