@@ -103,3 +103,6 @@ class Observations:
 
     def get_prev_obs_nparray(self):
         return np.array([[self.observations[i].previous_value() for i in range(len(self.observations))]])
+
+    def __len__(self):
+        return len(self.observations)

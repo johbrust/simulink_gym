@@ -205,6 +205,12 @@ class Environment(gym.Env):
         #     logger.debug('Simulation stopped')
         pass
 
+    def num_states(self):
+        return len(self.observations)
+
+    def num_actions(self):
+        return len(self.actions)
+
 
 class CommSocket:
 
