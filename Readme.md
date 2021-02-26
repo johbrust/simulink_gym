@@ -1,5 +1,7 @@
 # Wrapper for using Simulink models as Gym Environments
 
+[[_TOC_]]
+
 ---
 
 ## To Do
@@ -12,6 +14,14 @@
 This wrapper establishes the gym environment interface for Simulink models by deriving a `gym_env_simulink_wrapper.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
 
 The wrapper implements the `step`, `reset`, `render`, `close` and `seed` methods of the interface.
+
+## Setup
+
+``` bash
+conda activate <env>
+cd simulink_gym
+python setup.py develop
+```
 
 ## Preparing the Simulink Model
 

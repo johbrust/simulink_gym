@@ -6,11 +6,11 @@ import threading
 import struct
 import array
 from collections import namedtuple
-from observation import Observations
-from action import Actions
+from observations import Observations
+from actions import Actions
 
 
-block = namedtuple('block', ['path', 'param', 'value'])
+param_block = namedtuple('block', ['path', 'param', 'value'])
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ class Environment(gym.Env):
 
     def __init__(self, absolute_path, env_name, model_debug=False):
         # TODO: check input value validity
+        #   - check if environment/model exists
         self.model_debug = model_debug
         self.env_name = env_name
         self.simulation_time = 0
@@ -145,7 +146,6 @@ class Environment(gym.Env):
         return self.observations.get_current_obs_nparray()
 
     def render(self, mode='human'):
-        # TODO: implement render()
         pass
 
     def set_block_param(self, _block):
