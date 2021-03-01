@@ -1,11 +1,9 @@
-from observation import Observation
-
-empty_observation = Observation('empty')
+from simulink_gym import Observation
 
 
 class Action:
 
-    def __init__(self, name, linked_observation: Observation = empty_observation, direction=0):
+    def __init__(self, name, linked_observation: Observation = Observation('empty'), direction=0):
         self.name = name
         self.linked_observation = linked_observation
         self.direction = direction

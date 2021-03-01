@@ -9,7 +9,7 @@
 
 ---
 
-This wrapper establishes the gym environment interface for Simulink models by deriving a `gym_env_simulink_wrapper.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
+This wrapper establishes the gym environment interface for Simulink models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
 
 The wrapper implements the `step`, `reset`, `render`, `close` and `seed` methods of the interface.
 
@@ -38,3 +38,7 @@ __To Do__:
 ### `done` Flag
 
 An environment returns the `done` flag, when the episode is finished. The Simulink simulation returns an empty TCP/IP message, when the simulation stopped. But this is only sent after the last simulation step (i.e., at time `t_end + 1`). Therefore, if the stepping through the simulation is done in a `while` loop, the return values of the last call of `env.step` (the step returning with `done` set to `true`) are no new values and, therefore, disposable.
+
+## Example Environments
+
+Two different implementations of the classic cart pole environment are provided under [`envs`](./simulink_gym/envs). [One implementation](./simulink_gym/envs/cartpole_simulink.md) uses the basic Simulink blocks, [the other](./simulink_gym/envs/cartpole_simscape.md) is implemented using the [Simscape](https://www.mathworks.com/products/simscape.html) toolbox family.

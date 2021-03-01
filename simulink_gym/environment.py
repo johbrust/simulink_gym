@@ -1,59 +1,58 @@
 import socket
-import logging
 import gym
 import matlab.engine
 import threading
 import struct
 import array
+from pathlib import Path
 from collections import namedtuple
-from observation import Observations
-from action import Actions
+from simulink_gym import Actions
+from simulink_gym import Observations
+from gym import logger
 
-
+# TODO: Define class to hold the block info?
 block = namedtuple('block', ['path', 'param', 'value'])
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-console_handler = logging.StreamHandler()
-formatter = logging.Formatter(fmt='%(asctime)s (%(threadName)s, %(levelname)s), (%(funcName)s: %(lineno)d): %('
-                                  'message)s',
-                              datefmt='%d-%b-%y %H:%M:%S')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-
-
 class Environment(gym.Env):
+    def __init__(self, model_path: str, send_port=42313, recv_port=42312):
+        """Define an environment.
 
-    SEND_PORT = 42313  # Port on which data is sent to the model
-    RECV_PORT = 42312  # Port on which data is received from the model
-
-    def __init__(self, absolute_path, env_name, model_debug=False):
+        Parameters:
+            model_path : str
+                path to the model file
+            send_port : int, default 42313
+                TCP/IP port for sending
+            recv_port : int, default 42312
+                TCP/IP port for receiving
+        """
         # TODO: check input value validity
-        self.model_debug = model_debug
-        self.env_name = env_name
+        self.model_path = Path(model_path)
+        if not self.model_path.exists():
+            raise ValueError('Could not find model under {}'.format(self.model_path))
+        self.model_dir = self.model_path.parent
+        self.env_name = self.model_path.stem
         self.simulation_time = 0
         self.done = False
         self.observations = self.define_observations()
         self.actions = self.define_actions()
 
-        # Create TCP/IP sockets and empty threads:
-        self.recv_socket = CommSocket(self.RECV_PORT)
+        # Create TCP/IP sockets and threads:
+        self.recv_socket = CommSocket(recv_port)
         self.recv_socket_thread = threading.Thread()
-        self.send_socket = CommSocket(self.SEND_PORT)
+        self.send_socket = CommSocket(send_port)
         self.send_socket_thread = threading.Thread()
 
-        # Create empty simulation thread:
+        # Create simulation thread:
         self.simulation_thread = threading.Thread()
 
         # Setup Matlab engine:
-        if not self.model_debug:
-            logger.info('Starting Matlab engine')
-            self.matlab_engine = matlab.engine.start_matlab()
-            logger.info('Adding path to Matlab path: %s' % absolute_path)
-            self.matlab_path = self.matlab_engine.addpath(absolute_path)
-            logger.info('Creating simulation input object for model %s' % self.env_name)
-            self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
+        logger.info('Starting Matlab engine')
+        self.matlab_engine = matlab.engine.start_matlab()
+        logger.info('Adding path to Matlab path: %s', self.model_dir.absolute())
+        self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
+        logger.info('Creating simulation input object for model %s', self.env_name)
+        self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
 
     def define_observations(self) -> Observations:
         raise NotImplementedError
@@ -65,10 +64,10 @@ class Environment(gym.Env):
         raise NotImplementedError
 
     def __del__(self):
-        logger.info('Deleting Environment')
+        logger.debug('Deleting Environment')
         # Close sockets:
         self.close_sockets()
-        logger.info('Deleted Environment')
+        logger.debug('Deleted Environment')
         # Close matlab engine:
         self.matlab_engine.quit()
 
@@ -91,17 +90,17 @@ class Environment(gym.Env):
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = True
         else:
-            # Observations are everything except the second to last entry:
+            # Observations are everything except the last entry:
             self.observations.update_observations(recv_data[0:-1])
             reward = self.calculate_reward()
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = False
 
-        return self.observations.get_current_obs_nparray(), reward, self.done, info
+        return self.observations.get_current_obs(), reward, self.done, info
 
     def reset(self):
-        if not self.model_debug and self.simulation_thread.is_alive():
+        if self.simulation_thread.is_alive():
             logger.debug('Waiting for simulation to finish')
             # Step through simulation until it is finished:
             while not self.done:
@@ -114,16 +113,15 @@ class Environment(gym.Env):
         self.open_sockets()
 
         # Create and start simulation thread:
-        if not self.model_debug:
-            # Set initial values:
-            self.set_random_initial_values()
-            # Create and start simulation thread:
-            logger.debug('Creating simulation thread')
-            self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
-                                                      args=(self.sim_input,), daemon=True)
-            logger.debug('Starting simulation thread')
-            self.simulation_thread.start()
-            logger.debug('Simulation thread started')
+        # Set initial values:
+        self.set_random_initial_values()
+        # Create and start simulation thread:
+        logger.debug('Creating simulation thread')
+        self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
+                                                  args=(self.sim_input,), daemon=True)
+        logger.debug('Starting simulation thread')
+        self.simulation_thread.start()
+        logger.debug('Simulation thread started')
 
         # Wait for connection to be established:
         logger.debug('Waiting for connection')
@@ -134,7 +132,7 @@ class Environment(gym.Env):
         # Receive initial data:
         recv_data = self.recv_socket.receive()
         if recv_data:
-            logger.debug('Received initial data: %s' % recv_data)
+            logger.info('Received initial data: %s' % recv_data)
             # Observations are everything except the second to last entry:
             self.observations.update_observations(recv_data[0:-1])
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
@@ -142,26 +140,24 @@ class Environment(gym.Env):
             logger.error('No initial data received')
             self.observations.update_observations(None)
 
-        return self.observations.get_current_obs_nparray()
+        return self.observations.get_current_obs()
 
     def render(self, mode='human'):
         # TODO: implement render()
         pass
 
     def set_block_param(self, _block):
-        if not self.model_debug:
-            logger.info('Setting parameter %s of block %s to value %s' % (_block.param, _block.path, str(_block.value)))
-            self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
-                                                                  str(_block.value))
+        logger.info('Setting parameter %s of block %s to value %s' % (_block.param, _block.path, str(_block.value)))
+        self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
+                                                              str(_block.value))
 
     def set_random_initial_values(self):
         # Can be implemented by subclass:
         pass
 
     def set_model_param(self, param, value):
-        if not self.model_debug:
-            logger.info('Setting model parameter %s to value %s' % (param, str(value)))
-            self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
+        logger.info('Setting model parameter %s to value %s' % (param, str(value)))
+        self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
 
     def open_sockets(self):
         logger.debug('Opening sockets')
@@ -225,7 +221,7 @@ class CommSocket:
 
     def connect(self, timeout=300):
         if self.is_connected():
-            logger.info('Socket already connected')
+            logger.debug('Socket already connected')
         else:
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server.setblocking(False)

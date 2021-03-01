@@ -1,5 +1,4 @@
 import numpy as np
-np.set_printoptions(linewidth=100, precision=3)
 
 
 class Observation:
@@ -98,10 +97,10 @@ class Observations:
             else:
                 self.observations[i].update_value(np.nan)
 
-    def get_current_obs_nparray(self):
+    def get_current_obs(self):
         return np.array([[self.observations[i].current_value() for i in range(len(self.observations))]])
 
-    def get_prev_obs_nparray(self):
+    def get_prev_obs(self):
         return np.array([[self.observations[i].previous_value() for i in range(len(self.observations))]])
 
     def __len__(self):
