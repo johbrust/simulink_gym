@@ -4,3 +4,4 @@
 **/slprj/**
 *.slxc
 *.r2018b
+simulink_gym.egg-info/**

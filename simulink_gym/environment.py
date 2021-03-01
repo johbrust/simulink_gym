@@ -6,12 +6,12 @@ import struct
 import array
 from pathlib import Path
 from collections import namedtuple
-from simulink_gym import Actions
-from simulink_gym import Observations
 from gym import logger
+from observations import Observations
+from actions import Actions
 
-# TODO: Define class to hold the block info?
-block = namedtuple('block', ['path', 'param', 'value'])
+
+param_block = namedtuple('block', ['path', 'param', 'value'])
 
 
 class Environment(gym.Env):
@@ -32,6 +32,7 @@ class Environment(gym.Env):
             raise ValueError('Could not find model under {}'.format(self.model_path))
         self.model_dir = self.model_path.parent
         self.env_name = self.model_path.stem
+        self.model_debug = model_debug
         self.simulation_time = 0
         self.done = False
         self.observations = self.define_observations()
@@ -143,7 +144,6 @@ class Environment(gym.Env):
         return self.observations.get_current_obs()
 
     def render(self, mode='human'):
-        # TODO: implement render()
         pass
 
     def set_block_param(self, _block):

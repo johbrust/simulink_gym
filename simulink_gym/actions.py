@@ -1,4 +1,6 @@
-from simulink_gym import Observation
+from observations import Observation
+
+empty_observation = Observation('empty')
 
 
 class Action:
