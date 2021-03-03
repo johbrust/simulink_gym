@@ -1,4 +1,4 @@
-from observations import Observation
+from .observations import Observation
 
 empty_observation = Observation('empty')
 

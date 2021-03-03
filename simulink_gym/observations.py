@@ -1,4 +1,5 @@
-import numpy as np
+import numpy as np  # TODO: define dependencies
+np.set_printoptions(linewidth=100, precision=3)
 
 
 class Observation:
