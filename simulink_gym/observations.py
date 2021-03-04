@@ -1,5 +1,4 @@
 import numpy as np  # TODO: define dependencies
-np.set_printoptions(linewidth=100, precision=3)
 
 
 class Observation:
@@ -129,4 +128,4 @@ class Observations:
         return len(self._observations)
 
     def __str__(self):
-        return ', '.join('{}: {}'.format(str(obs), obs.current_value) for obs in self._observations)
+        return ', '.join('{}: {:.3g}'.format(str(obs), obs.current_value) for obs in self._observations)
