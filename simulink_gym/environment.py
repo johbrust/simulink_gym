@@ -41,8 +41,8 @@ class Environment(gym.Env):
         self.simulation_time = 0
         self.done = False
         self.model_debug = model_debug
-        self.observations = self.__create_observations()
-        self.actions = self.__create_actions()
+        self._observations = self._create_observations()
+        self._actions = self._create_actions()
 
         # Create TCP/IP sockets and threads:
         self.recv_socket = CommSocket(recv_port)
@@ -73,7 +73,7 @@ class Environment(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def __create_observations(self):
+    def _create_observations(self):
         observations = self.define_observations()
         logger.debug('{} observation(s) defined'.format(len(observations)))
         return observations
@@ -81,13 +81,21 @@ class Environment(gym.Env):
     def define_observations(self) -> Observations:
         raise NotImplementedError
 
-    def __create_actions(self):
+    @property
+    def observations(self):
+        return self._observations
+
+    def _create_actions(self):
         actions = self.define_actions()
         logger.debug('{} action(s) defined'.format(len(actions)))
         return actions
 
     def define_actions(self) -> Actions:
         raise NotImplementedError
+
+    @property
+    def actions(self):
+        return self._actions
 
     def calculate_reward(self):
         raise NotImplementedError
@@ -99,26 +107,39 @@ class Environment(gym.Env):
         :return:
         """
 
-        self.actions.update_current_action_index(action)
-        self.send_action(self.actions.current_action_index)
+        if isinstance(action, str):
+            try:
+                action_idx = self._actions.action_names.index(action)
+            except ValueError as e:
+                raise e
+        elif isinstance(action, int):
+            if 0 <= action < len(self._actions):
+                action_idx = action
+            else:
+                raise ValueError('action not in valid range')
+        else:
+            raise TypeError('action needs to be a string or integer')
+
+        self._actions.update_current_action_index(action_idx)
+        self.send_action(self._actions.current_action_index)
 
         # Receive data:
         recv_data = self.recv_socket.receive()
         # When the simulation is done an empty message is sent:
         if not recv_data:
-            self.observations.update_observations(None)
+            self._observations.update_observations(None)
             reward = 0
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = True
         else:
             # Observations are everything except the last entry:
-            self.observations.update_observations(recv_data[0:-1])
+            self._observations.update_observations(recv_data[0:-1])
             reward = self.calculate_reward()
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
             info = {'simulation timestamp': str(self.simulation_time)}
             self.done = False
 
-        return self.observations.get_current_obs(), reward, self.done, info
+        return self._observations.get_current_obs(), reward, self.done, info
 
     def reset(self):
         if not self.done:
@@ -150,13 +171,13 @@ class Environment(gym.Env):
         if recv_data:
             logger.info('Received initial data: %s' % recv_data)
             # Observations are everything except the second to last entry:
-            self.observations.update_observations(recv_data[0:-1])
+            self._observations.update_observations(recv_data[0:-1])
             self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
         else:
             logger.error('No initial data received')
-            self.observations.update_observations(None)
+            self._observations.update_observations(None)
 
-        return self.observations.get_current_obs()
+        return self._observations.get_current_obs()
 
     def render(self, mode='human'):
         pass
@@ -229,10 +250,10 @@ class Environment(gym.Env):
             self.simulation_thread.join()
 
     def num_states(self):
-        return len(self.observations)
+        return len(self._observations)
 
     def num_actions(self):
-        return len(self.actions)
+        return len(self._actions)
 
     def close(self):
         self.stop_simulation()
