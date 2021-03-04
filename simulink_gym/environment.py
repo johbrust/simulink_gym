@@ -69,6 +69,9 @@ class Environment(gym.Env):
 
     def __del__(self):
         self.close()
+        # Close matlab engine:
+        if self.matlab_engine is not None:
+            self.matlab_engine.quit()
 
     def __create_observations(self):
         observations = self.define_observations()
@@ -118,12 +121,7 @@ class Environment(gym.Env):
         return self.observations.get_current_obs(), reward, self.done, info
 
     def reset(self):
-        if self.simulation_thread and self.simulation_thread.is_alive():
-            logger.debug('Waiting for simulation to finish')
-            # Step through simulation until it is finished:
-            while not self.done:
-                _, _, self.done, _ = self.step(0)
-            self.simulation_thread.join()
+        if not self.done:
             self.stop_simulation()
 
         self.close_sockets()
@@ -225,6 +223,10 @@ class Environment(gym.Env):
     def stop_simulation(self):
         if not self.done:
             self.__send_stop_signal()
+            # Receive data:
+            recv_data = self.recv_socket.receive()
+        if self.simulation_thread.is_alive():
+            self.simulation_thread.join()
 
     def num_states(self):
         return len(self.observations)
@@ -238,9 +240,6 @@ class Environment(gym.Env):
         # Close sockets:
         self.close_sockets()
         logger.info('Environment closed')
-        # Close matlab engine:
-        if self.matlab_engine is not None:
-            self.matlab_engine.quit()
 
 
 class CommSocket:
