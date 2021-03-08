@@ -56,11 +56,22 @@ class Environment(gym.Env):
 
             # Setup Matlab engine:
             logger.info('Starting Matlab engine')
-            self.matlab_engine = matlab.engine.start_matlab()
-            logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
-            self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
-            logger.info('Creating simulation input object for model {}'.format(self.env_name))
-            self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
+            matlab_started = False
+            start_trials = 0
+            while not matlab_started and start_trials < 3:
+                try:
+                    self.matlab_engine = matlab.engine.start_matlab()
+                except matlab.engine.RejectedExecutionError:
+                    start_trials += 1
+                    logger.error('Unable to start Matlab engine. Retrying...')
+                else:
+                    matlab_started = True
+                    logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
+                    self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
+                    logger.info('Creating simulation input object for model {}'.format(self.env_name))
+                    self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
+            if not matlab_started and start_trials >= 3:
+                raise RuntimeError('Unable to start Matlab engine.')
         else:
             self.simulation_thread = None
             self.matlab_engine = None
