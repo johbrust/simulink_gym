@@ -68,7 +68,7 @@ class Environment(gym.Env):
                     matlab_started = True
                     logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
-                    logger.info('Creating simulation input object for model {}'.format(self.env_name))
+                    logger.info('Creating simulation input object for model {}.slx'.format(self.env_name))
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
             if not matlab_started and start_trials >= 3:
                 raise RuntimeError('Unable to start Matlab engine.')
