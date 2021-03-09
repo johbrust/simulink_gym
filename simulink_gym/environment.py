@@ -257,7 +257,7 @@ class Environment(gym.Env):
             self.__send_stop_signal()
             # Receive data:
             recv_data = self.recv_socket.receive()
-        if self.simulation_thread.is_alive():
+        if not self.model_debug and self.simulation_thread.is_alive():
             self.simulation_thread.join()
 
     def num_states(self):
