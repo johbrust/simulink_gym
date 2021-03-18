@@ -11,14 +11,13 @@ from collections import namedtuple
 from .observations import Observations
 from .actions import Actions
 
-logger.set_level(logger.DEBUG)
-
 
 param_block = namedtuple('block', ['path', 'param', 'value'])
 
 
 class Environment(gym.Env):
-    def __init__(self, model_path: str, send_port=42313, recv_port=42312, model_debug=False):
+    def __init__(self, model_path: str, send_port=42313, recv_port=42312, model_debug=False,
+                 logger_lvl=logger.INFO):
         """Define an environment.
 
         Parameters:
@@ -29,6 +28,7 @@ class Environment(gym.Env):
             recv_port : int, default 42312
                 TCP/IP port for receiving
         """
+        logger.set_level(logger_lvl)
         # TODO: check input value validity
         self.model_path = Path(model_path)
         if not self.model_path.exists():
@@ -39,7 +39,7 @@ class Environment(gym.Env):
         self.model_dir = self.model_path.parent
         self.env_name = self.model_path.stem
         self.simulation_time = 0
-        self.done = False
+        self.done = True
         self.model_debug = model_debug
         self._observations = self._create_observations()
         self._actions = self._create_actions()
