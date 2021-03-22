@@ -1,16 +1,20 @@
 import numpy as np  # TODO: define dependencies
+import random
 
 
 class Observation:
 
     def __init__(self, name, lower_sat=-np.inf, upper_sat=np.inf,
-                 current_value=np.nan, previous_value=np.nan, normalize=False):
+                 initial_value=None, previous_value=np.nan, normalize=False):
         self._name = name
         if lower_sat >= upper_sat:
             raise ValueError('Lower saturation value must be less than upper saturation value.')
         self.upper_saturation = upper_sat
         self.lower_saturation = lower_sat
-        self._current_value = current_value
+        if initial_value is not None:
+            self._current_value = initial_value
+        else:
+            self._current_value = random.uniform(self.lower_saturation, self.upper_saturation)
         self._previous_value = previous_value
         if self.lower_saturation > -np.inf and self.upper_saturation < np.inf and normalize:
             self.normalized = True
