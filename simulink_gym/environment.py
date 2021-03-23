@@ -53,7 +53,7 @@ class Environment(gym.Env):
             self.simulation_thread = threading.Thread()
 
             # Setup Matlab engine:
-            logger.info('Starting Matlab engine')
+            logger.debug('Starting Matlab engine')
             matlab_started = False
             start_trials = 0
             while not matlab_started and start_trials < 3:
@@ -64,10 +64,10 @@ class Environment(gym.Env):
                     logger.error('Unable to start Matlab engine. Retrying...')
                 else:
                     matlab_started = True
-                    logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
+                    logger.debug('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
                     # Create simulation input object:
-                    logger.info('Creating simulation input object for model {}.slx'.format(self.env_name))
+                    logger.debug('Creating simulation input object for model {}.slx'.format(self.env_name))
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
             if not matlab_started and start_trials >= 3:
                 raise RuntimeError('Unable to start Matlab engine.')
@@ -201,8 +201,8 @@ class Environment(gym.Env):
 
     def set_block_param(self, _block):
         if not self.model_debug:
-            logger.info('Setting parameter {} of block {} to value {:.3g}'.format(_block.param, _block.path,
-                                                                                  _block.value))
+            logger.debug('Setting parameter {} of block {} to value {:.3g}'.format(_block.param, _block.path,
+                                                                                   _block.value))
             self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
                                                                   str(_block.value))
 
@@ -216,7 +216,7 @@ class Environment(gym.Env):
 
     def set_model_param(self, param, value):
         if not self.model_debug:
-            logger.info('Setting model parameter {} to value {:.3g}'.format(param, value))
+            logger.debug('Setting model parameter {} to value {:.3g}'.format(param, value))
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
 
     def open_sockets(self):
@@ -291,7 +291,7 @@ class Environment(gym.Env):
         logger.debug('Closing environment')
         # Close sockets:
         self.close_sockets()
-        logger.info('Environment closed')
+        logger.debug('Environment closed')
 
 
 class CommSocket:
