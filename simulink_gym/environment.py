@@ -16,8 +16,7 @@ param_block = namedtuple('block', ['path', 'param', 'value'])
 
 
 class Environment(gym.Env):
-    def __init__(self, model_path: str, send_port=42313, recv_port=42312, model_debug=False,
-                 logger_lvl=logger.INFO):
+    def __init__(self, model_path: str, send_port=42313, recv_port=42312, model_debug=False):
         """Define an environment.
 
         Parameters:
@@ -28,7 +27,6 @@ class Environment(gym.Env):
             recv_port : int, default 42312
                 TCP/IP port for receiving
         """
-        logger.set_level(logger_lvl)
         # TODO: check input value validity
         self.model_path = Path(model_path)
         if not self.model_path.exists():
