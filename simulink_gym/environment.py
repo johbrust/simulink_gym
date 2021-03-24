@@ -39,8 +39,8 @@ class Environment(gym.Env):
         self.simulation_time = 0
         self.done = True
         self.model_debug = model_debug
-        self._observations = None
-        self._actions = None
+        self._observations = self._create_observations()
+        self._actions = self._create_actions()
 
         # Create TCP/IP sockets and threads:
         self.recv_socket = CommSocket(recv_port)
@@ -53,7 +53,7 @@ class Environment(gym.Env):
             self.simulation_thread = threading.Thread()
 
             # Setup Matlab engine:
-            logger.debug('Starting Matlab engine')
+            logger.info('Starting Matlab engine')
             matlab_started = False
             start_trials = 0
             while not matlab_started and start_trials < 3:
@@ -64,10 +64,10 @@ class Environment(gym.Env):
                     logger.error('Unable to start Matlab engine. Retrying...')
                 else:
                     matlab_started = True
-                    logger.debug('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
+                    logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
                     # Create simulation input object:
-                    logger.debug('Creating simulation input object for model {}.slx'.format(self.env_name))
+                    logger.info('Creating simulation input object for model {}.slx'.format(self.env_name))
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
             if not matlab_started and start_trials >= 3:
                 raise RuntimeError('Unable to start Matlab engine.')

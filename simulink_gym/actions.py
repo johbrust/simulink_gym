@@ -1,6 +1,5 @@
 from .observations import Observation
-
-empty_observation = Observation('empty')
+import math
 
 
 class Action:
@@ -55,6 +54,28 @@ class Actions:
     @property
     def set_values(self):
         return [self._set_values[key]['set_value'] for key in self._set_values]
+
+    @property
+    def mask(self):
+        mask = []
+        for i in range(len(self._actions)):
+            action = self._actions[i]
+            if action.linked_observation is not None:
+                new_value = action.linked_observation.current_value + action.increment
+                # Limit new value:
+                if new_value < action.linked_observation.lower_saturation:
+                    new_value = action.linked_observation.lower_saturation
+                elif new_value > action.linked_observation.upper_saturation:
+                    new_value = action.linked_observation.upper_saturation
+                # Check for change:
+                if math.isclose(new_value, action.linked_observation.current_value, rel_tol=0.001):
+                    mask.append(False)
+                else:
+                    mask.append(True)
+            else:
+                mask.append(True)
+
+        return mask
 
     def __len__(self):
         return len(self._actions)
