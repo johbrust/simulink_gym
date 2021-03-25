@@ -16,7 +16,12 @@ param_block = namedtuple('block', ['path', 'param', 'value'])
 
 
 class Environment(gym.Env):
-    def __init__(self, model_path: str, send_port=42313, recv_port=42312, model_debug=False):
+    def __init__(self,
+                 model_path: str,
+                 send_port=42313,
+                 recv_port=42312,
+                 stop_time=1500,
+                 model_debug=False):
         """Define an environment.
 
         Parameters:
@@ -37,6 +42,7 @@ class Environment(gym.Env):
         self.model_dir = self.model_path.parent
         self.env_name = self.model_path.stem
         self.simulation_time = 0
+        self.stop_time = stop_time
         self.done = True
         self.model_debug = model_debug
         self._observations = self._create_observations()
@@ -212,7 +218,8 @@ class Environment(gym.Env):
 
     def set_model_parameters(self):
         # TODO: description
-        raise NotImplementedError
+        # Set simulation stop time:
+        self.set_model_param('StopTime', self.stop_time)
 
     def set_model_param(self, param, value):
         if not self.model_debug:
