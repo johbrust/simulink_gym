@@ -15,7 +15,7 @@ class Action:
 
 class Actions:
 
-    def __init__(self, *args: Action):
+    def __init__(self, *args: Action, default_mask=None):
         self._actions = list()
         for action in args:
             self._actions.append(action)
@@ -27,6 +27,13 @@ class Actions:
                                   'lower_sat': action.linked_observation.lower_saturation,
                                   'upper_sat': action.linked_observation.upper_saturation}
                 self._set_values[str(action.linked_observation)] = set_value_dict
+        if default_mask is None:
+            self._default_mask = [True]*len(self._actions)
+        else:
+            if not len(default_mask) == len(self._actions):
+                raise ValueError('Default mask has not the same size as actions')
+            else:
+                self._default_mask = default_mask
 
     def update_current_action_index(self, action_idx):
         if 0 <= action_idx < len(self._actions):
@@ -57,7 +64,7 @@ class Actions:
 
     @property
     def mask(self):
-        mask = []
+        mask = self._default_mask.copy()
         for i in range(len(self._actions)):
             action = self._actions[i]
             if action.linked_observation is not None:
@@ -69,11 +76,7 @@ class Actions:
                     new_value = action.linked_observation.upper_saturation
                 # Check for change:
                 if math.isclose(new_value, action.linked_observation.current_value, rel_tol=0.001):
-                    mask.append(False)
-                else:
-                    mask.append(True)
-            else:
-                mask.append(True)
+                    mask[i] = False
 
         return mask
 
