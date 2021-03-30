@@ -6,6 +6,7 @@ from gym import logger  # TODO: define dependencies
 import threading
 import struct
 import array
+import random
 from pathlib import Path
 from collections import namedtuple
 from .observations import Observations
@@ -21,6 +22,7 @@ class Environment(gym.Env):
                  send_port=42313,
                  recv_port=42312,
                  stop_time=1500,
+                 seed=None,
                  model_debug=False):
         """Define an environment.
 
@@ -44,6 +46,7 @@ class Environment(gym.Env):
         self.simulation_time = 0
         self.stop_time = stop_time
         self.done = True
+        self.seed(seed)
         self.model_debug = model_debug
         self._observations = self._create_observations()
         self._actions = self._create_actions()
@@ -88,6 +91,13 @@ class Environment(gym.Env):
         # Close matlab engine:
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
+
+    def seed(self, seed=None):
+        if isinstance(seed, int):
+            self._seed = seed
+            random.seed(self._seed)
+        else:
+            self._seed = None
 
     def _create_observations(self):
         observations = self.define_observations()
@@ -160,9 +170,12 @@ class Environment(gym.Env):
 
         return self._observations.get_current_obs(), reward, self.done, info
 
-    def reset(self):
+    def reset(self, reset_random=False):
         if not self.done:
             self.stop_simulation()
+
+        if reset_random and (self._seed is not None):
+            random.seed(self._seed)
 
         self._observations = self._create_observations()
         self._actions = self._create_actions()
