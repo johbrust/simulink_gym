@@ -171,7 +171,7 @@ class Environment(gym.Env):
 
         return self._observations.get_current_obs(), reward, self.done, info
 
-    def reset(self, reset_random_seed=False):
+    def reset(self, reset_random_seed=True):
         if not self.done:
             self.stop_simulation()
 
