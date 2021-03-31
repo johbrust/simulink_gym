@@ -6,7 +6,7 @@ from gym import logger  # TODO: define dependencies
 import threading
 import struct
 import array
-import random
+import numpy as np  # TODO: define dependencies
 from pathlib import Path
 from collections import namedtuple
 from .observations import Observations
@@ -95,9 +95,10 @@ class Environment(gym.Env):
     def seed(self, seed=None):
         if isinstance(seed, int):
             self._seed = seed
-            random.seed(self._seed)
+            self.rng = np.random.RandomState(self._seed)
         else:
             self._seed = None
+            self.rng = np.random.RandomState()
 
     def _create_observations(self):
         observations = self.define_observations()
@@ -170,12 +171,12 @@ class Environment(gym.Env):
 
         return self._observations.get_current_obs(), reward, self.done, info
 
-    def reset(self, reset_random=False):
+    def reset(self, reset_random_seed=False):
         if not self.done:
             self.stop_simulation()
 
-        if reset_random and (self._seed is not None):
-            random.seed(self._seed)
+        if reset_random_seed and (self._seed is not None):
+            self.rng.seed(self._seed)
 
         self._observations = self._create_observations()
         self._actions = self._create_actions()
