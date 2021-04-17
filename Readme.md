@@ -1,6 +1,6 @@
 # Wrapper for using Simulink models as Gym Environments
 
-[[_TOC_]]
+[TOC]
 
 ---
 
