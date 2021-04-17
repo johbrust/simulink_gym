@@ -1,9 +1,5 @@
 # Wrapper for using Simulink models as Gym Environments
 
-[TOC]
-
----
-
 ## To Do
 
 - How to define `actions` and `observations`?
