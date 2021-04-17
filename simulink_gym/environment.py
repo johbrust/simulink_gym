@@ -46,6 +46,8 @@ class Environment(gym.Env):
         self.simulation_time = 0
         self.stop_time = stop_time
         self.done = True
+        self._seed = None
+        self.rng = np.random.RandomState()
         self.seed(seed)
         self.model_debug = model_debug
         self._observations = self._create_observations()
@@ -96,9 +98,6 @@ class Environment(gym.Env):
         if isinstance(seed, int):
             self._seed = seed
             self.rng = np.random.RandomState(self._seed)
-        else:
-            self._seed = None
-            self.rng = np.random.RandomState()
 
     def _create_observations(self):
         observations = self.define_observations()
