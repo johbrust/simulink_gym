@@ -48,3 +48,4 @@ An environment returns the `done` flag, when the episode is finished. The Simuli
 ## Example Environments
 
 Two different implementations of the classic cart pole environment are provided under [`envs`](./simulink_gym/envs). [One implementation](./simulink_gym/envs/cartpole_simulink.md) uses the basic Simulink blocks, [the other](./simulink_gym/envs/cartpole_simscape.md) is implemented using the [Simscape](https://www.mathworks.com/products/simscape.html) toolbox family.
+
