@@ -19,6 +19,10 @@ cd simulink_gym
 python setup.py develop
 ```
 
+## MATLAB Engine for Python
+
+A MATLAB instance is needed to run the Simulink models. MATLAB provides an installable Python module (`matlab.engine`) to interact with a background MATLAB instance. The installation instructions for the MATLAB module can be found [here](https://de.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html). 
+
 ## Preparing the Simulink Model
 
 In order to use a Simulink model with this wrapper the model has to be prepared.
