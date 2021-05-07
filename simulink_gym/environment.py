@@ -46,10 +46,14 @@ class Environment(gym.Env):
         self.simulation_time = 0
         self.stop_time = stop_time
         self.done = True
-        self._seed = None
-        self.rng = np.random.RandomState()
-        self.seed(seed)
         self.model_debug = model_debug
+
+        # Set seed and random number generator:
+        self._seed = None
+        self.rng = None
+        self.seed(seed)
+
+        # Create observations and actions:
         self._observations = self._create_observations()
         self._actions = self._create_actions()
 
@@ -97,7 +101,13 @@ class Environment(gym.Env):
     def seed(self, seed=None):
         if isinstance(seed, int):
             self._seed = seed
-            self.rng = np.random.RandomState(self._seed)
+        else:
+            self._seed = np.random.randint(9999999)
+
+        # Set random number generator:
+        self.rng = np.random.RandomState(self._seed)
+
+        return self._seed
 
     def _create_observations(self):
         observations = self.define_observations()
