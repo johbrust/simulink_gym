@@ -16,6 +16,12 @@ class Action:
 class Actions:
 
     def __init__(self, *args: Action, default_mask=None):
+        """TBD
+
+        default_mask    Action mask which can be used to mask out actions by default. This can be used to reduce the
+                        action space for specific experiments without creating a new model.
+                        E.g. [True, False, True] for 3 actions with 2nd action not selectable.
+        """
         self._actions = list()
         for action in args:
             self._actions.append(action)
