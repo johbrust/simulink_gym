@@ -16,7 +16,7 @@ The wrapper implements the `step`, `reset`, `render`, `close` and `seed` methods
 ``` bash
 conda activate <env>
 cd simulink_gym
-python setup.py develop
+pip install -e .
 ```
 
 ## MATLAB Engine for Python
