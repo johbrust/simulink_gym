@@ -13,15 +13,37 @@ The wrapper implements the `step`, `reset`, `render`, `close` and `seed` methods
 
 ## Setup
 
-``` bash
-conda activate <env>
+Installing the package is currently only possible from source:
+
+```bash
+# Clone repository with HTTPS:
+git clone https://github.com/johbrust/simulink_gym.git
+# or SSH:
+git clone git@github.com:johbrust/simulink_gym.git
+
 cd simulink_gym
+
+# If needed, activate some environment here!
+
 pip install -e .
 ```
 
-## MATLAB Engine for Python
+Currently, the usage of this package inside a [Poetry](https://python-poetry.org/) or similarly elaborate environment management tool (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning required by PEP 440. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
-A MATLAB instance is needed to run the Simulink models. MATLAB provides an installable Python module (`matlab.engine`) to interact with a background MATLAB instance. The installation instructions for the MATLAB module can be found [here](https://de.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html). 
+### MATLAB Engine for Python
+
+A MATLAB instance is needed to run the Simulink models. MATLAB provides an installable Python module (`matlab.engine`) locally to interact with a background instance of a locally installed MATLAB. The installation instructions for the MATLAB module can be found [here](https://de.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html).
+
+When, e.g., `virtualenv` is used, run the installation with the full path of the respective python interpreter, e.g.:
+
+```bash
+cd <matlab root>/extern/engines/python
+$HOME/.local/share/virtualenvs/<virtualenv name>/bin/python setup.py install
+```
+
+Under Linux `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`.
+
+Recently, a [MATLAB engine PyPI package](https://pypi.org/project/matlabengine/) has become available, but it requires MATLAB version R2022a. Such a package would be beneficial if it would work with a wider range of installed MATLAB versions. As long as only one version is supported, a manual install of the MATLAB engine seems advantageous.
 
 ## Preparing the Simulink Model
 
@@ -52,4 +74,3 @@ An environment returns the `done` flag, when the episode is finished. The Simuli
 ## Example Environments
 
 Two different implementations of the classic cart pole environment are provided under [`envs`](./simulink_gym/envs). [One implementation](./simulink_gym/envs/cartpole_simulink.md) uses the basic Simulink blocks, [the other](./simulink_gym/envs/cartpole_simscape.md) is implemented using the [Simscape](https://www.mathworks.com/products/simscape.html) toolbox family.
-
