@@ -1,8 +1,5 @@
-**/.idea/**
-**/__pycache__/**
-*.pyc
-**/slprj/**
+slprj
 *.slxc
-*.r2018b
-simulink_gym.egg-info/**
-.vscode/**
+simulink_gym.egg-info
+.vscode
+*.pyc
