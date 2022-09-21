@@ -51,7 +51,7 @@ class Actions:
     def action_names(self):
         return [str(action) for action in self._actions]
 
-    def current_action(self):
+    def current_action(self) -> Action:
         return self._actions[self.current_action_index]
 
     def current_action_name(self):
