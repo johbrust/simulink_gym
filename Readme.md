@@ -13,7 +13,7 @@ The wrapper implements the `step`, `reset`, `render`, `close` and `seed` methods
 
 ## Setup
 
-Installing the package is currently only possible from source:
+Installing this package is currently only possible from source:
 
 ```bash
 # Clone repository with HTTPS:
@@ -28,7 +28,7 @@ cd simulink_gym
 pip install -e .
 ```
 
-Currently, the usage of this package inside a [Poetry](https://python-poetry.org/) or similarly elaborate environment management tool (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
+Currently, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tool (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
 ### MATLAB Engine for Python
 
@@ -54,6 +54,7 @@ __To Do__:
 - [Set up the model](https://www.mathworks.com/help/simulink/slref/setmodelparameter.html)
   - Sample time?
   - Solver?
+- Describe `model_debug` flag
 
 ### TCP/IP Communication
 
