@@ -9,7 +9,7 @@ from pathlib import Path
 from collections import namedtuple
 from .observations import Observations
 from .actions import Actions
-from utils import CommSocket
+from .utils import CommSocket
 
 
 param_block = namedtuple('block', ['path', 'param', 'value'])
