@@ -1,27 +1,24 @@
 import os
 import matlab.engine
 import gym
-from simulink_gym import logger
+import gym.spaces as spaces
+from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
 import struct
 import numpy as np
+from typing import Optional, List, Union, Tuple
 from pathlib import Path
-from collections import namedtuple
-from .observations import Observations
-from .actions import Actions
-from .utils import CommSocket
+from .utils import CommSocket, Observation, Observations, ParamBlock
 
 
-param_block = namedtuple('block', ['path', 'param', 'value'])
+class SimulinkEnv(gym.Env):
 
+    _observations: Observations
 
-class Environment(gym.Env):
     def __init__(self,
                  model_path: str,
                  send_port=42313,
                  recv_port=42312,
-                 stop_time=1500,
-                 seed=None,
                  model_debug=False):
         """Define an environment.
 
@@ -33,7 +30,6 @@ class Environment(gym.Env):
             recv_port : int, default 42312
                 TCP/IP port for receiving
         """
-        # TODO: check input value validity
         self.model_path = Path(model_path)
         if not self.model_path.exists():
             # Try as relative path:
@@ -43,18 +39,12 @@ class Environment(gym.Env):
         self.model_dir = self.model_path.parent
         self.env_name = self.model_path.stem
         self.simulation_time = 0
-        self.stop_time = stop_time
-        self.done = True
+        self.state = None
+        self.terminated = True
+        self.truncated = True
         self.model_debug = model_debug
-
-        # Set seed and random number generator:
-        self._seed = None
-        self.rng = None
-        self.seed(seed)
-
-        # Create observations and actions:
-        self._observations = self._create_observations()
-        self._actions = self._create_actions()
+        self.workspace_variables: List[Tuple] = []
+        self.model_parameters: List[Tuple] = []
 
         # Create TCP/IP sockets and threads:
         self.recv_socket = CommSocket(recv_port)
@@ -78,7 +68,8 @@ class Environment(gym.Env):
                     logger.error('Unable to start Matlab engine. Retrying...')
                 else:
                     matlab_started = True
-                    logger.info('Adding path to Matlab path: {}'.format(self.model_dir.absolute()))
+                    logger.info(f'Adding components to Matlab path')
+                    self.matlab_path = self.matlab_engine.addpath(str(SIMULINK_BLOCK_LIB_PATH))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
                     # Create simulation input object:
                     logger.info('Creating simulation input object for model {}.slx'.format(self.env_name))
@@ -97,106 +88,42 @@ class Environment(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def seed(self, seed=None):
-        if isinstance(seed, int):
-            self._seed = seed
-        else:
-            self._seed = np.random.randint(9999999)
-
-        # Set random number generator:
-        self.rng = np.random.RandomState(self._seed)
-
-        return self._seed
-
-    def _create_observations(self):
-        observations = self.define_observations()
-        logger.debug('{} observation(s) defined'.format(len(observations)))
-        return observations
-
-    def define_observations(self) -> Observations:
-        # TODO: description
-        raise NotImplementedError
-
-    @property
-    def observations(self):
-        return self._observations
-
-    def _create_actions(self):
-        actions = self.define_actions()
-        logger.debug('{} action(s) defined'.format(len(actions)))
-        return actions
-
-    def define_actions(self) -> Actions:
-        raise NotImplementedError
-
-    @property
-    def actions(self):
-        return self._actions
-
-    def calculate_reward(self):
-        raise NotImplementedError
-
-    def step(self, action):
-        """
-        TODO
-        :param action:
-        :return:
-        """
-
-        if isinstance(action, str):
-            try:
-                action_idx = self._actions.action_names.index(action)
-            except ValueError as e:
-                raise e
-        elif isinstance(action, int):
-            if 0 <= action < len(self._actions):
-                action_idx = action
+    def sim_step(self, action):
+        if not (self.truncated or self.terminated):
+            # Execute action:
+            self.send_data(np.array(action, ndmin=1))
+            # Receive data:
+            recv_data = self.recv_socket.receive()
+            # When the simulation is truncated an empty message is sent:
+            if not recv_data:
+                self.truncated = True
+                self.terminated = True
+                logger.debug("Episode done.")
             else:
-                raise ValueError('action not in valid range')
+                self.state = np.array(recv_data[0:-1])
+                self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
+                logger.debug(f'Simulation state: {self.state} ({self.simulation_time} s)')
         else:
-            raise TypeError('action needs to be a string or integer')
+            logger.info("No episode running currently. No stepping possible.")
 
-        self._actions.update_current_action_index(action_idx)
-        self.apply_action()
+        return self.state, self.simulation_time, (self.truncated or self.terminated)
 
-        # Receive data:
-        recv_data = self.recv_socket.receive()
-        # When the simulation is done an empty message is sent:
-        if not recv_data:
-            self._observations.update_observations(None)
-            reward = 0
-            info = {'simulation timestamp': str(self.simulation_time)}
-            self.done = True
-            logger.debug('Episode done.')
-        else:
-            # Observations are everything except the last entry:
-            self._observations.update_observations(recv_data[0:-1])
-            reward = self.calculate_reward()
-            self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
-            info = {'simulation timestamp': str(self.simulation_time)}
-            self.done = False
-            logger.debug('{}: {}'.format(self.simulation_time, self.observations))
+    def reset(self, seed: Optional[int] = None):
+        super().reset(seed=seed)
 
-        return self._observations.get_current_obs(), reward, self.done, info
-
-    def reset(self, reset_random_seed=True):
-        if not self.done:
+        if not (self.truncated or self.terminated):
             self.stop_simulation()
-
-        if reset_random_seed and (self._seed is not None):
-            self.rng.seed(self._seed)
-
-        self._observations = self._create_observations()
-        self._actions = self._create_actions()
 
         self.close_sockets()
         self.open_sockets()
 
+        # Set initial values:
+        self.state = self.set_initial_values()
+
         if not self.model_debug:
-            # Set model parameters:
-            self.set_model_parameters()
-            # Set initial values:
-            self.set_initial_values()
+            # Set model parameters and workspace variables:
+            self._set_model_parameters()
+            self._set_workspace_variables()
             # Create and start simulation thread:
             logger.debug('Creating simulation thread')
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
@@ -211,42 +138,100 @@ class Environment(gym.Env):
         self.recv_socket_thread.join()
         logger.debug('Connection established')
 
-        # Receive initial data:
-        recv_data = self.recv_socket.receive()
-        if recv_data:
-            # Observations are everything except the second to last entry:
-            self._observations.update_observations(recv_data[0:-1])
-            self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
-            logger.debug('Received initial state: {}'.format(self.observations))
+        # Reset truncated and terminated flags:
+        self.truncated = False
+        self.terminated = False
+
+        return self.state
+
+    def send_data(self, set_values: np.ndarray, stop=False):
+        if set_values.shape == self.action_space.shape:
+            set_values = set_values.flatten()
+            byte_order_str = '<d' + 'd'*set_values.size
+            msg = struct.pack(byte_order_str, int(stop), *set_values)
+            logger.debug('Sending {}'.format(set_values))
+            self.send_socket.send_msg(msg)
+        elif (self.truncated or self.terminated):
+            logger.info("No episode running currently. No data can be sent.")
         else:
-            logger.error('No initial state received')
-            self._observations.update_observations(None)
+            raise Exception(f"Wrong shape of data. The shape is {set_values.shape}, but should be {self.action_space.shape}.")
 
-        return self._observations.get_current_obs()
+    @property
+    def observations(self) -> Observations:
+        return self._observations
 
-    def render(self, mode='human'):
-        pass
+    @observations.setter
+    def observations(self, obs: List[Observation]):
+        self._observations = Observations(obs)
+        obs_dict = {observation.name: observation.space for observation in self._observations}
+        self.observation_space = spaces.Dict(obs_dict)
 
-    def set_block_param(self, _block):
+    def set_workspace_variable(self, var, value):
+        """Set variable in model workspace.
+
+        Variables in the model workspace take precedence over variables in other workspaces. If blocks use
+        variables from the workspace, their value can be set by using this function.
+        
+        See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setvariable.html
+        """
         if not self.model_debug:
-            logger.debug('Setting parameter {} of block {} to value {:.3g}'.format(_block.param, _block.path,
-                                                                                   _block.value))
-            self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, _block.path, _block.param,
-                                                                  str(_block.value))
+            logger.debug(f'Setting variable {var} to {value} in model workspace')
+            self.sim_input = self.matlab_engine.setVariable(self.sim_input, var, value, 'Workspace', self.env_name)
 
-    def set_initial_values(self):
-        # TODO: description
-        raise NotImplementedError
+    def _set_workspace_variables(self):
+        """Set all workspace variables."""
+        for var, value in self.workspace_variables:
+            self.set_workspace_variable(var, value)
 
-    def set_model_parameters(self):
-        # TODO: description
-        # Set simulation stop time:
-        self.set_model_param('StopTime', self.stop_time)
+    def set_block_parameter(self, block: ParamBlock):
+        """Set parameter values of Simulink blocks.
+        
+        See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setblockparameter.html
+        """
+        if not self.model_debug:
+            logger.debug(f'Setting parameter {block.parameter} of block {block.path} to value {block.value}')
+            self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, block.path, block.parameter,
+                                                                  str(block.value))
 
-    def set_model_param(self, param, value):
+    def set_model_parameter(self, param: str, value: Union[int, float]):
+        """Set Simulink model parameters.
+        
+        See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setmodelparameter.html
+        """
         if not self.model_debug:
             logger.debug('Setting model parameter {} to value {:.3g}'.format(param, value))
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
+
+    def _set_model_parameters(self):
+        """Set all model parameters."""
+        for parameter, value in self.model_parameters:
+            self.set_model_parameter(parameter, value)
+
+    def set_initial_values(self):
+        """Set the initial values of the state/observations.        
+        """
+        try:
+            for obs in self.observations:
+                if not self.model_debug:  #TBD: Setting the initial values automatically if in model debug mode is not yet supported.
+                    self.set_block_parameter(obs.param_block)
+        except AttributeError:
+            raise AttributeError('Environment observations not defined')
+
+        return self.observations.initial_state
+
+    def _send_stop_signal(self):
+        set_values = np.zeros(self.action_space.shape)
+        self.send_data(set_values, stop=True)
+
+    def stop_simulation(self):
+        if not (self.truncated or self.terminated):
+            self._send_stop_signal()
+            # Receive data:
+            _ = self.recv_socket.receive()
+        if not self.model_debug and self.simulation_thread.is_alive():
+            self.simulation_thread.join()
+
+        self.truncated = True
 
     def open_sockets(self):
         logger.debug('Opening sockets')
@@ -280,40 +265,6 @@ class Environment(gym.Env):
         if self.send_socket_thread.is_alive():
             self.send_socket_thread.join()
         self.send_socket.close()
-
-    def apply_action(self):
-        if self._actions.current_action().linked_observation:
-            # Apply action increment to current value
-            increment = self._actions.current_action().increment
-            set_value_name = str(self._actions.current_action().linked_observation)
-            new_value = self._actions.current_action().linked_observation.current_value + increment
-            self._actions.update_set_value(set_value_name, new_value)
-            # Send new set values
-        self.send_data(self._actions.set_values)
-
-    def _send_stop_signal(self):
-        self.send_data(self._actions.set_values, stop=True)
-
-    def send_data(self, set_values, stop=False):
-        num_set_values = len(set_values)
-        byte_order_str = '<d' + 'd'*num_set_values
-        msg = struct.pack(byte_order_str, int(stop), *set_values)
-        logger.debug('Sending {}'.format(set_values))
-        self.send_socket.send_msg(msg)
-
-    def stop_simulation(self):
-        if not self.done:
-            self._send_stop_signal()
-            # Receive data:
-            recv_data = self.recv_socket.receive()
-        if not self.model_debug and self.simulation_thread.is_alive():
-            self.simulation_thread.join()
-
-    def num_states(self):
-        return len(self._observations)
-
-    def num_actions(self):
-        return len(self._actions)
 
     def close(self):
         self.stop_simulation()
