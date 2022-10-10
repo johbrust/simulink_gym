@@ -4,8 +4,6 @@ from pathlib import Path
 from .param_block import ParamBlock
 import numpy as np
 
-# TBD: Check how to control the random number generation
-
 
 class Observation:
     def __init__(
