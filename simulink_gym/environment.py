@@ -106,7 +106,7 @@ class SimulinkEnv(gym.Env):
         else:
             logger.info("No episode running currently. No stepping possible.")
 
-        return self.state, self.simulation_time, (self.truncated or self.terminated)
+        return self.state, self.simulation_time, self.truncated, self.terminated
 
     def reset(self, seed: Optional[int] = None):
         super().reset(seed=seed)
