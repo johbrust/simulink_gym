@@ -42,6 +42,7 @@ class SimulinkEnv(gym.Env):
         self.state = None
         self.terminated = True
         self.truncated = True
+        self._simulation_alive = False
         self.model_debug = model_debug
         self.workspace_variables: List[Tuple] = []
         self.model_parameters: List[Tuple] = []
@@ -88,30 +89,10 @@ class SimulinkEnv(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def sim_step(self, action):
-        if not (self.truncated or self.terminated):
-            # Execute action:
-            self.send_data(np.array(action, ndmin=1))
-            # Receive data:
-            recv_data = self.recv_socket.receive()
-            # When the simulation is truncated an empty message is sent:
-            if not recv_data:
-                self.truncated = True
-                self.terminated = True
-                logger.debug("Episode done.")
-            else:
-                self.state = np.array(recv_data[0:-1])
-                self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
-                logger.debug(f'Simulation state: {self.state} ({self.simulation_time} s)')
-        else:
-            logger.info("No episode running currently. No stepping possible.")
-
-        return self.state, self.simulation_time, self.truncated, self.terminated
-
     def reset(self, seed: Optional[int] = None):
         super().reset(seed=seed)
 
-        if not (self.truncated or self.terminated):
+        if self._simulation_alive:
             self.stop_simulation()
 
         self.close_sockets()
@@ -131,6 +112,7 @@ class SimulinkEnv(gym.Env):
             logger.debug('Starting simulation thread')
             self.simulation_thread.start()
             logger.debug('Simulation thread started')
+            self._simulation_alive = True
 
         # Wait for connection to be established:
         logger.debug('Waiting for connection')
@@ -144,6 +126,27 @@ class SimulinkEnv(gym.Env):
 
         return self.state
 
+    def sim_step(self, action):
+        if self._simulation_alive:
+            # Execute action:
+            self.send_data(np.array(action, ndmin=1))
+            # Receive data:
+            recv_data = self.recv_socket.receive()
+            # When the simulation is truncated an empty message is sent:
+            if not recv_data:
+                self.truncated = True
+                self.terminated = True
+                self._simulation_alive = False
+                logger.debug("Episode done.")
+            else:
+                self.state = np.array(recv_data[0:-1])
+                self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
+                logger.debug(f'Simulation state: {self.state} ({self.simulation_time} s)')
+        else:
+            logger.info("No simulation running currently. No stepping possible.")
+
+        return self.state, self.simulation_time, self.truncated, self.terminated
+
     def send_data(self, set_values: np.ndarray, stop=False):
         if set_values.shape == self.action_space.shape:
             set_values = set_values.flatten()
@@ -151,8 +154,8 @@ class SimulinkEnv(gym.Env):
             msg = struct.pack(byte_order_str, int(stop), *set_values)
             logger.debug('Sending {}'.format(set_values))
             self.send_socket.send_msg(msg)
-        elif (self.truncated or self.terminated):
-            logger.info("No episode running currently. No data can be sent.")
+        elif not self._simulation_alive:
+            logger.info("No simulation running currently. No data can be sent.")
         else:
             raise Exception(f"Wrong shape of data. The shape is {set_values.shape}, but should be {self.action_space.shape}.")
 
@@ -222,9 +225,10 @@ class SimulinkEnv(gym.Env):
     def _send_stop_signal(self):
         set_values = np.zeros(self.action_space.shape)
         self.send_data(set_values, stop=True)
+        self._simulation_alive = False
 
     def stop_simulation(self):
-        if not (self.truncated or self.terminated):
+        if self._simulation_alive:
             self._send_stop_signal()
             # Receive data:
             _ = self.recv_socket.receive()
@@ -232,6 +236,7 @@ class SimulinkEnv(gym.Env):
             self.simulation_thread.join()
 
         self.truncated = True
+        self._simulation_alive = False
 
     def open_sockets(self):
         logger.debug('Opening sockets')
