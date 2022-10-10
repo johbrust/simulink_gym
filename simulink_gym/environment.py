@@ -8,7 +8,8 @@ import struct
 import numpy as np
 from typing import Optional, List, Union, Tuple
 from pathlib import Path
-from .utils import CommSocket, Observation, Observations, ParamBlock
+from .observations import Observation, Observations
+from .utils import CommSocket, ParamBlock
 
 
 class SimulinkEnv(gym.Env):

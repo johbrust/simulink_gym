@@ -6,4 +6,5 @@ SIMULINK_BLOCK_LIB_PATH = Path(__file__).parent.parent.absolute().joinpath('simu
 from gym import logger
 from gym import spaces
 from .environment import SimulinkEnv
-from .utils import Observation, ParamBlock
+from .observations import Observation
+from .utils import ParamBlock
