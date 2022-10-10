@@ -1,7 +1,7 @@
 from gym import Space
 from typing import Union, List
 from pathlib import Path
-from .param_block import ParamBlock
+from .utils import ParamBlock
 import numpy as np
 
 
