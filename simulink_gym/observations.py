@@ -60,6 +60,9 @@ class Observations:
     def __next__(self):
         return self._observations.__next__()
 
+    def __len__(self):
+        return len(self._observations)
+
     @property
     def initial_state(self):
         initial_state = [obs.initial_value for obs in self._observations]
