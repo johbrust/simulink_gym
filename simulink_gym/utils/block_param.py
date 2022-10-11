@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Union
 
 @dataclass
-class ParamBlock:
-    path: str
-    parameter: str
+class BlockParam:
+    parameter_path: str
     value: Union[int, float]
