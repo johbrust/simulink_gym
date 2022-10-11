@@ -54,5 +54,6 @@ Special blocks in a custom block library were prepared for the communication wit
 
 ## Preparing the Environment File
 
-- Setting the action and observation space: The action space is set as for the standard gym environment. The observation space needs the custom `observations` parameter (TBD add link to line in code), since the observations are linked to certain blocks in the Simulink model. The order in the `observations` declaration has to match the order of the state mux in the model since it also defines the interpretation of the incoming data (which is defined by the mux). #TBD
-- Get the correct name of the block parameter not from the mask but from the documentation! E.g., the integrator block has a `Initial condition` parameter in the mask, but the parameter is set by using `InitialCondition` in the `ParamBlock`.
+How to describe the Simulink environment in Python will be described here soon!
+
+
