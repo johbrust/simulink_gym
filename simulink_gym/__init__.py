@@ -7,4 +7,4 @@ from gym import logger
 from gym import spaces
 from .environment import SimulinkEnv
 from .observations import Observation
-from .utils import ParamBlock
+from .utils import BlockParam

@@ -1,7 +1,6 @@
 from gym import Space
 from typing import Union, List
-from pathlib import Path
-from .utils import ParamBlock
+from .utils import BlockParam
 import numpy as np
 
 
@@ -15,8 +14,6 @@ class Observation:
     ):
         self.name = name
         self.space = space
-        block_path = str(Path(initial_value_path).parent)
-        parameter = str(Path(initial_value_path).stem)
 
         if initial_value is None:
             initial_value = self.space.sample()
@@ -28,18 +25,18 @@ class Observation:
                 f"Observation {self.name}: Initial value {initial_value} not inside space limits"
             )
 
-        self.param_block = ParamBlock(block_path, parameter, initial_value)
+        self.block_param = BlockParam(initial_value_path, initial_value)
 
     @property
     def initial_value(self):
-        return self.param_block.value
+        return self.block_param.value
 
     @initial_value.setter
     def initial_value(self, value):
-        self.param_block.value = value
+        self.block_param.value = value
 
     def resample_initial_value(self):
-        self.param_block.value = self.space.sample()
+        self.block_param.value = self.space.sample()
 
 
 class Observations:

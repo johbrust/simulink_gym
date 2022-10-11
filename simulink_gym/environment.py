@@ -9,7 +9,7 @@ import numpy as np
 from typing import Optional, List, Union, Tuple
 from pathlib import Path
 from .observations import Observation, Observations
-from .utils import CommSocket, ParamBlock
+from .utils import CommSocket, BlockParam
 
 
 class SimulinkEnv(gym.Env):
@@ -191,15 +191,18 @@ class SimulinkEnv(gym.Env):
         for var, value in self.workspace_variables:
             self.set_workspace_variable(var, value)
 
-    def set_block_parameter(self, block: ParamBlock):
+    def set_block_parameter(self, parameter: BlockParam):
         """Set parameter values of Simulink blocks.
         
         See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setblockparameter.html
         """
         if not self.model_debug:
-            logger.debug(f'Setting parameter {block.parameter} of block {block.path} to value {block.value}')
-            self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, block.path, block.parameter,
-                                                                  str(block.value))
+            block_path = str(Path(parameter.parameter_path).parent)
+            param = str(Path(parameter.parameter_path).stem)
+            value = str(parameter.value)
+            logger.debug(f'Setting parameter {param} of block {block_path} to value {value}')
+            self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, block_path, param,
+                                                                  value)
 
     def set_model_parameter(self, param: str, value: Union[int, float]):
         """Set Simulink model parameters.
@@ -221,7 +224,7 @@ class SimulinkEnv(gym.Env):
         try:
             for obs in self.observations:
                 if not self.model_debug:  #TBD: Setting the initial values automatically if in model debug mode is not yet supported.
-                    self.set_block_parameter(obs.param_block)
+                    self.set_block_parameter(obs.block_param)
         except AttributeError:
             raise AttributeError('Environment observations not defined')
 
