@@ -129,12 +129,11 @@ class SimulinkEnv(gym.Env):
 
     def sim_step(self, action):
         if self._simulation_alive:
-            action = np.array(action, ndmin=1, dtype=self.action_space.dtype)
             # Check validity of action:
             if not self.action_space.contains(action):
                 raise ValueError(f"Action {action} not in action space.")
             # Execute action:
-            self.send_data(action)
+            self.send_data(np.array(action))
             # Receive data:
             recv_data = self.recv_socket.receive()
             # When the simulation is truncated an empty message is sent:
