@@ -284,3 +284,6 @@ class SimulinkEnv(gym.Env):
         # Close sockets:
         self.close_sockets()
         logger.debug('Environment closed')
+
+    def render(self):
+        pass
