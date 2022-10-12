@@ -36,7 +36,7 @@ class SimulinkEnv(gym.Env):
             # Try as relative path:
             self.model_path = Path(os.path.abspath(model_path))
             if not self.model_path.exists():
-                raise ValueError('Could not find model under {}'.format(self.model_path))
+                raise ValueError(f'Could not find model under {self.model_path}')
         self.model_dir = self.model_path.parent
         self.env_name = self.model_path.stem
         self.simulation_time = 0
@@ -74,7 +74,7 @@ class SimulinkEnv(gym.Env):
                     self.matlab_path = self.matlab_engine.addpath(str(SIMULINK_BLOCK_LIB_PATH))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
                     # Create simulation input object:
-                    logger.info('Creating simulation input object for model {}.slx'.format(self.env_name))
+                    logger.info(f'Creating simulation input object for model {self.env_name}.slx')
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
             if not matlab_started and start_trials >= 3:
                 raise RuntimeError('Unable to start Matlab engine.')
@@ -156,7 +156,7 @@ class SimulinkEnv(gym.Env):
             set_values = set_values.flatten()
             byte_order_str = '<d' + 'd'*set_values.size
             msg = struct.pack(byte_order_str, int(stop), *set_values)
-            logger.debug('Sending {}'.format(set_values))
+            logger.debug(f'Sending {set_values}')
             self.send_socket.send_msg(msg)
         elif not self._simulation_alive:
             logger.info("No simulation running currently. No data can be sent.")
@@ -209,7 +209,7 @@ class SimulinkEnv(gym.Env):
         See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setmodelparameter.html
         """
         if not self.model_debug:
-            logger.debug('Setting model parameter {} to value {:.3g}'.format(param, value))
+            logger.debug(f'Setting model parameter {param} to value {value:.3g}')
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
 
     def _set_model_parameters(self):
