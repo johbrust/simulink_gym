@@ -7,7 +7,7 @@ class CommSocket:
     HOST = 'localhost'
 
     def __init__(self, port):
-        logger.debug('Setting up server on port {}'.format(port))
+        logger.debug(f'Setting up server on port {port}')
         self.port = port
         self.connection = None
         self.address = None
@@ -23,11 +23,11 @@ class CommSocket:
             self.server.setblocking(True)
             self.server.bind((self.HOST, self.port))
             self.server.listen(1)
-            logger.debug('Listening on port {}'.format(self.port))
+            logger.debug(f'Listening on port {self.port}')
             self.server.settimeout(timeout)
             try:
                 self.connection, self.address = self.server.accept()
-                logger.debug('Connection established with {}'.format(self.connection))
+                logger.debug(f'Connection established with {self.connection}')
             except socket.timeout:
                 self.server.shutdown(socket.SHUT_RDWR)
                 self.server.close()
@@ -54,7 +54,7 @@ class CommSocket:
 
     def close(self):
         if self.connection is not None:
-            logger.debug('Closing connection {} at port {}'.format(self.connection, self.port))
+            logger.debug(f'Closing connection {self.connection} at port {self.port}')
             self.connection.shutdown(socket.SHUT_RDWR)
             self.connection.close()
             self.server.shutdown(socket.SHUT_RDWR)
