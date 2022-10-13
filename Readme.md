@@ -35,7 +35,7 @@ When, e.g., `virtualenv` is used, run the installation with the full path of the
 
 ```bash
 cd <matlab root>/extern/engines/python
-$HOME/.local/share/virtualenvs/<virtualenv name>/bin/python setup.py install
+<path to virtual env>/<virtualenv name>/bin/python setup.py install
 ```
 
 Under Linux, `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`.
