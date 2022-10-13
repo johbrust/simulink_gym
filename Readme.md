@@ -6,6 +6,10 @@ The wrapper implements the [`step`](https://www.gymlibrary.dev/api/core/#gym.Env
 
 Rendering is done by this wrapper since it is environment specific.
 
+## Gym Interface
+
+The Gym project is currently revisited with breaking changes in the interface. *Simulink Gym* already uses the updated interface, but Reinforcement Learning algorithm libraries, like [Stable Baselines 3](https://github.com/DLR-RM/stable-baselines3) or [rllib](https://www.ray.io/rllib), have not been updated yet. Using *Simulink Gym* in combination with learning algorithms from such libraries, therefore, is not possible until the ongoing efforts of these libraries to update to the newest interface version is completed.
+
 ## Setup
 
 Installing this package is currently only possible from source:
