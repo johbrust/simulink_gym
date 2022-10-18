@@ -90,8 +90,8 @@ class SimulinkEnv(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def reset(self, seed: Optional[int] = None):
-        super().reset(seed=seed)
+    def reset(self):  #, seed: Optional[int] = None):
+        # super().reset(seed=seed)
 
         if self._simulation_alive:
             self.stop_simulation()

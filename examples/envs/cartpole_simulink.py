@@ -36,9 +36,10 @@ class CartPoleSimulink(SimulinkEnv):
         abs_max_force_N = 10.0
         self.set_block_parameter(BlockParam(f'{self.env_name}/ForceGain/Gain', abs_max_force_N))
         if self.continuous_action:
-            self.action_space = Box(low=-1.0, high=1.0)
+            self.action_space = Box(low=-1.0, high=1.0, shape=(1,))
         else:
-            self.action_space = Discrete(3, start=-1)
+            # self.action_space = Discrete(3, start=-1)
+            self.action_space = Discrete(3)
 
         # Define state and observations:
         self.max_cart_position = 1.0
@@ -46,26 +47,26 @@ class CartPoleSimulink(SimulinkEnv):
         self.max_pole_angle_rad = max_pole_angle_deg*math.pi/180.0
         self.observations = [
             Observation("theta",
-                        Box(low=-self.max_pole_angle_rad, high=self.max_pole_angle_rad),
+                        Box(low=-self.max_pole_angle_rad, high=self.max_pole_angle_rad, shape=(1,)),
                         f'{self.env_name}/Integrator_theta/InitialCondition'),
             Observation("omega",
-                        Box(low=-np.inf, high=np.inf),
+                        Box(low=-np.inf, high=np.inf, shape=(1,)),
                         f'{self.env_name}/Integrator_omega/InitialCondition',
                         0.0),
             Observation("alpha",
-                        Box(low=-np.inf, high=np.inf),
+                        Box(low=-np.inf, high=np.inf, shape=(1,)),
                         f'{self.env_name}/IC1/Value',
                         0.0),
             Observation("pos", 
-                        Box(low=-self.max_cart_position, high=self.max_cart_position),
+                        Box(low=-self.max_cart_position, high=self.max_cart_position, shape=(1,)),
                         f'{self.env_name}/Integrator_position/InitialCondition',
                         0.0),
             Observation("vel",
-                        Box(low=-np.inf, high=np.inf),
+                        Box(low=-np.inf, high=np.inf, shape=(1,)),
                         f'{self.env_name}/Integrator_speed/InitialCondition',
                         0.0),
             Observation("acc",
-                        Box(low=-np.inf, high=np.inf),
+                        Box(low=-np.inf, high=np.inf, shape=(1,)),
                         f'{self.env_name}/IC/Value',
                         0.0)
         ]
@@ -80,8 +81,11 @@ class CartPoleSimulink(SimulinkEnv):
         # Call common reset:
         state = super().reset()
 
+        state = {"theta": state[0], "omega": state[1], "alpha": state[2], "pos": state[3], "vel": state[4], "acc": state[5]}
+
         # Return reshaped state. Needed for use as tf.model input:
-        return state.reshape((1, len(self.observations)))
+        # return state.reshape((1, len(self.observations)))
+        return state
 
     def step(self, action):
         """Method for stepping the simulation."""
@@ -110,5 +114,11 @@ class CartPoleSimulink(SimulinkEnv):
         info = {"simulation time [s]": simulation_time}
         
         # Reshape state needed for use as tf.model input:
-        state = np.array(state, dtype=np.float32).reshape((1, len(self.observations)))
-        return state, reward, terminated, truncated, info
+        state = np.array(state, dtype=np.float32)
+        state = {"theta": np.array([state[0]], dtype=np.float32),
+                 "omega": np.array([state[1]], dtype=np.float32),
+                 "alpha": np.array([state[2]], dtype=np.float32),
+                 "pos": np.array([state[3]], dtype=np.float32),
+                 "vel": np.array([state[4]], dtype=np.float32),
+                 "acc": np.array([state[5]], dtype=np.float32)}
+        return state, reward, (terminated or truncated), info
