@@ -151,6 +151,9 @@ class SimulinkEnv(gym.Env):
 
         return self.state, self.simulation_time, self.truncated, self.terminated
 
+    def step(self, action):
+        raise NotImplementedError
+
     def send_data(self, set_values: np.ndarray, stop=False):
         if set_values.shape == self.action_space.shape:
             set_values = set_values.flatten()
