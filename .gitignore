@@ -4,3 +4,4 @@ simulink_gym.egg-info
 .vscode
 *.pyc
 *.slx.r*
+wandb**
