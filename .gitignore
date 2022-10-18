@@ -5,3 +5,4 @@ simulink_gym.egg-info
 *.pyc
 *.slx.r*
 wandb**
+runs**
