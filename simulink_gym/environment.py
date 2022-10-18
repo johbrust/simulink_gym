@@ -6,7 +6,7 @@ from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
 import struct
 import numpy as np
-from typing import Optional, List, Union, Tuple
+from typing import List, Union, Tuple
 from pathlib import Path
 from .observations import Observation, Observations
 from .utils import CommSocket, BlockParam
@@ -90,8 +90,8 @@ class SimulinkEnv(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def reset(self, seed: Optional[int] = None):
-        super().reset(seed=seed)
+    def reset(self):  #, seed: Optional[int] = None):
+        # super().reset(seed=seed)
 
         if self._simulation_alive:
             self.stop_simulation()
