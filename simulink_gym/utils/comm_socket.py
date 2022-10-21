@@ -55,10 +55,17 @@ class CommSocket:
     def close(self):
         if self.connection is not None:
             logger.debug(f'Closing connection {self.connection} at port {self.port}')
+            try:
             self.connection.shutdown(socket.SHUT_RDWR)
             self.connection.close()
             self.server.shutdown(socket.SHUT_RDWR)
             self.server.close()
+            except:
+                #TBD:
+                # This catches an error appearing after some time in the training process. It seems
+                # that the socket used to send the data to the Simulink model is closing before its
+                # close() method is called. The reasons have to be investigated.
+                logger.warn(f"Something went wrong while closing socket ({self.address}, {self.port})")
             self.connection = None
             self.address = None
         else:
