@@ -1,4 +1,2 @@
-setuptools==44.0.0
-cloudpickle==2.0.0
-gym==0.26.1
-numpy==1.21.5
+gym==0.21.0
+numpy
