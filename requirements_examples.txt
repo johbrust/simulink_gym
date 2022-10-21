@@ -1,0 +1,7 @@
+gym==0.21.0
+numpy
+wandb
+stable-baseline3
+rich
+tdqm
+tensorboard
