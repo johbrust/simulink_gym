@@ -42,16 +42,13 @@ class SimulinkEnv(gym.Env):
         self.state = None
         self.terminated = True
         self.truncated = True
-        self._simulation_alive = False
         self.model_debug = model_debug
         self.workspace_variables: List[Tuple] = []
         self.model_parameters: List[Tuple] = []
 
-        # Create TCP/IP sockets and threads:
-        self.recv_socket = CommSocket(recv_port)
-        self.recv_socket_thread = threading.Thread()
-        self.send_socket = CommSocket(send_port)
-        self.send_socket_thread = threading.Thread()
+        # Create TCP/IP sockets:
+        self.recv_socket = CommSocket(recv_port, 'recv_socket')
+        self.send_socket = CommSocket(send_port, 'send_socket')
 
         if not self.model_debug:
             # Create simulation thread:
@@ -92,7 +89,7 @@ class SimulinkEnv(gym.Env):
     def _reset(self):  #, seed: Optional[int] = None):
         # super().reset(seed=seed)
 
-        if self._simulation_alive:
+        if self.simulation_thread.is_alive():
             self.stop_simulation()
 
         self.close_sockets()
@@ -108,16 +105,15 @@ class SimulinkEnv(gym.Env):
             # Create and start simulation thread:
             logger.debug('Creating simulation thread')
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
-                                                      args=(self.sim_input,), daemon=True)
+                                                      args=(self.sim_input,))
             logger.debug('Starting simulation thread')
             self.simulation_thread.start()
             logger.debug('Simulation thread started')
-            self._simulation_alive = True
 
         # Wait for connection to be established:
         logger.debug('Waiting for connection')
-        self.send_socket_thread.join()
-        self.recv_socket_thread.join()
+        self.send_socket.await_connection()
+        self.recv_socket.await_connection()
         logger.debug('Connection established')
 
         # Reset truncated and terminated flags:
@@ -128,7 +124,7 @@ class SimulinkEnv(gym.Env):
         raise NotImplementedError
 
     def sim_step(self, action):
-        if self._simulation_alive:
+        if self.simulation_thread.is_alive():
             # Check validity of action:
             if not self.action_space.contains(action):
                 raise ValueError(f"Action {action} not in action space.")
@@ -140,7 +136,6 @@ class SimulinkEnv(gym.Env):
             if not recv_data:
                 self.truncated = True
                 self.terminated = True
-                self._simulation_alive = False
                 logger.debug("Episode done.")
             else:
                 self.state = np.array(recv_data[0:-1], dtype=np.float32)
@@ -155,14 +150,14 @@ class SimulinkEnv(gym.Env):
         raise NotImplementedError
 
     def send_data(self, set_values: np.ndarray, stop=False):
-        if set_values.shape == self.action_space.shape:
+        if set_values.shape == self.action_space.shape and self.simulation_thread.is_alive():
             set_values = set_values.flatten()
             byte_order_str = '<d' + 'd'*set_values.size
             msg = struct.pack(byte_order_str, int(stop), *set_values)
             logger.debug(f'Sending {set_values}')
             self.send_socket.send_msg(msg)
-        elif not self._simulation_alive:
-            logger.info("No simulation running currently. No data can be sent.")
+        elif not self.simulation_thread.is_alive():
+            logger.debug("No simulation running currently. No data can be sent.")
         else:
             raise Exception(f"Wrong shape of data. The shape is {set_values.shape}, but should be {self.action_space.shape}.")
 
@@ -225,50 +220,25 @@ class SimulinkEnv(gym.Env):
     def _send_stop_signal(self):
         set_values = np.zeros(self.action_space.shape)
         self.send_data(set_values, stop=True)
-        self._simulation_alive = False
 
     def stop_simulation(self):
-        if self._simulation_alive:
+        if self.simulation_thread.is_alive():
             self._send_stop_signal()
-            # Receive data:
+            # Clear receive data queue:
             _ = self.recv_socket.receive()
-        if not self.model_debug and self.simulation_thread.is_alive():
-            self.simulation_thread.join()
+            if not self.model_debug:
+                self.simulation_thread.join()
 
         self.truncated = True
-        self._simulation_alive = False
 
     def open_sockets(self):
         logger.debug('Opening sockets')
-        if self.recv_socket_thread.is_alive():
-            logger.debug('recv_socket_thread already running')
-        else:
-            if self.recv_socket.is_connected():
-                logger.debug('recv_socket still connected, closing socket')
-                self.recv_socket.close()
-            logger.debug('Creating and starting recv_socket thread')
-            self.recv_socket_thread = threading.Thread(name='recv_socket.connect()', target=self.recv_socket.connect,
-                                                       daemon=True)
-            self.recv_socket_thread.start()
-
-        if self.send_socket_thread.is_alive():
-            logger.debug('send_socket_thread already running')
-        else:
-            if self.send_socket.is_connected():
-                logger.debug('send_socket still connected, closing socket')
-                self.send_socket.close()
-            logger.debug('Creating and starting send_socket thread')
-            self.send_socket_thread = threading.Thread(name='send_socket.connect()', target=self.send_socket.connect,
-                                                       daemon=True)
-            self.send_socket_thread.start()
+        self.recv_socket.open_socket()
+        self.send_socket.open_socket()
 
     def close_sockets(self):
         logger.debug('Closing sockets')
-        if self.recv_socket_thread.is_alive():
-            self.recv_socket_thread.join()
         self.recv_socket.close()
-        if self.send_socket_thread.is_alive():
-            self.send_socket_thread.join()
         self.send_socket.close()
 
     def close(self):
