@@ -89,7 +89,7 @@ class SimulinkEnv(gym.Env):
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def reset(self):  #, seed: Optional[int] = None):
+    def _reset(self):  #, seed: Optional[int] = None):
         # super().reset(seed=seed)
 
         if self._simulation_alive:
@@ -124,7 +124,8 @@ class SimulinkEnv(gym.Env):
         self.truncated = False
         self.terminated = False
 
-        return self.state
+    def reset(self):
+        raise NotImplementedError
 
     def sim_step(self, action):
         if self._simulation_alive:
