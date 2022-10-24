@@ -1,20 +1,19 @@
 import os
 import matlab.engine
 import gym
-import gym.spaces as spaces
 from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
 import struct
 import numpy as np
 from typing import List, Union, Tuple
 from pathlib import Path
-from .observations import Observation, Observations
+from .observations import Observations
 from .utils import CommSocket, BlockParam
 
 
 class SimulinkEnv(gym.Env):
 
-    _observations: Observations
+    observations: Observations
 
     def __init__(self,
                  model_path: str,
@@ -143,7 +142,7 @@ class SimulinkEnv(gym.Env):
                 self._simulation_alive = False
                 logger.debug("Episode done.")
             else:
-                self.state = np.array(recv_data[0:-1])
+                self.state = np.array(recv_data[0:-1], dtype=np.float32)
                 self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
                 logger.debug(f'Simulation state: {self.state} ({self.simulation_time} s)')
         else:
@@ -165,16 +164,6 @@ class SimulinkEnv(gym.Env):
             logger.info("No simulation running currently. No data can be sent.")
         else:
             raise Exception(f"Wrong shape of data. The shape is {set_values.shape}, but should be {self.action_space.shape}.")
-
-    @property
-    def observations(self) -> Observations:
-        return self._observations
-
-    @observations.setter
-    def observations(self, obs: List[Observation]):
-        self._observations = Observations(obs)
-        obs_dict = {observation.name: observation.space for observation in self._observations}
-        self.observation_space = spaces.Dict(obs_dict)
 
     def set_workspace_variable(self, var, value):
         """Set variable in model workspace.

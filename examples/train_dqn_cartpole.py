@@ -76,7 +76,7 @@ def main():
     env = CartPoleSimulink(stop_time=20)
 
     # Create learning agent:
-    agent = DQN("MultiInputPolicy",
+    agent = DQN("MlpPolicy",
                 env,
                 buffer_size=config["buffer_size"],
                 batch_size=config["batch_size"],
