@@ -2,7 +2,7 @@ import os
 import argparse
 import string
 import random
-from envs import CartPoleSimulink
+from simulink_gym.envs import CartPoleSimulink
 from stable_baselines3 import DQN
 from pathlib import Path
 from datetime import datetime

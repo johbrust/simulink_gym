@@ -86,11 +86,11 @@ class CartPoleSimulink(SimulinkEnv):
         self.observations[0].resample_initial_value()
 
         # Call common reset:
-        state = super().reset()
+        super()._reset()
 
         # Return reshaped state. Needed for use as tf.model input:
         # return state.reshape((1, len(self.observations)))
-        return state
+        return self.state
 
     def step(self, action):
         """Method for stepping the simulation."""
