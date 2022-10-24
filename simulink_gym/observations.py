@@ -1,4 +1,4 @@
-from gym import Space
+from gym.spaces import Box
 from typing import Union, List
 from .utils import BlockParam
 import numpy as np
@@ -8,12 +8,13 @@ class Observation:
     def __init__(
         self,
         name: str,
-        space: Space,
+        low: float,
+        high: float,
         initial_value_path: str,
         initial_value: Union[int, float] = None,
     ):
         self.name = name
-        self.space = space
+        self.space = Box(low=np.array([low], dtype=np.float32), high=np.array([high], dtype=np.float32))
 
         if initial_value is None:
             initial_value = self.space.sample()
@@ -40,19 +41,14 @@ class Observation:
 
 
 class Observations:
-    def __init__(
-        self,
-        observations: List[Observation]
-    ):
+    def __init__(self, observations: List[Observation]):
         self._observations = observations
+        lows = np.array([observation.space.low[0] for observation in self._observations], dtype=np.float32)
+        highs = np.array([observation.space.high[0] for observation in self._observations], dtype=np.float32)
+        self.space = Box(low=lows, high=highs)
 
-    @property
-    def observations(self):
-        return self._observations
-
-    @observations.setter
-    def observations(self, observations):
-        self._observations = observations
+    def __getitem__(self, index: int):
+        return self._observations[index]
 
     def __iter__(self):
         return self._observations.__iter__()
@@ -65,5 +61,5 @@ class Observations:
 
     @property
     def initial_state(self):
-        initial_state = [obs.initial_value for obs in self._observations]
+        initial_state = [obs.initial_value[0] for obs in self._observations]
         return np.array(initial_state)
