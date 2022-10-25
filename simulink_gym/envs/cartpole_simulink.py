@@ -1,4 +1,4 @@
-from simulink_gym import SimulinkEnv, Observation, Observations, BlockParam
+from simulink_gym import SimulinkEnv, Observation, Observations
 from gym.spaces import Box, Discrete
 from pathlib import Path
 import numpy as np
@@ -18,11 +18,13 @@ class CartPoleSimulink(SimulinkEnv):
             model_debug=model_debug,
         )
 
+        # TBD: Currently disabled functionality causing memory issues:
         # Define model parameters to set:
         # self.model_parameters = [
         #     ('StopTime', stop_time)
         # ]
 
+        # TBD: Currently disabled functionality causing memory issues:
         # Define workspace variables to set:
         # self.workspace_variables = [
         #     ('g', 9.08665),
@@ -36,7 +38,6 @@ class CartPoleSimulink(SimulinkEnv):
         if self.continuous_action:
             self.action_space = Box(low=-1.0, high=1.0, shape=(1,))
         else:
-            # self.action_space = Discrete(3, start=-1)
             self.action_space = Discrete(3)
 
         # Define state and observations:
@@ -88,7 +89,6 @@ class CartPoleSimulink(SimulinkEnv):
         super()._reset()
 
         # Return reshaped state. Needed for use as tf.model input:
-        # return state.reshape((1, len(self.observations)))
         return self.state
 
     def step(self, action):
