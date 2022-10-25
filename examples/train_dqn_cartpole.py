@@ -15,21 +15,24 @@ def main():
     # Parameters:
     parser = define_parser()
     args = parser.parse_args()
+    # General:
+    save_policy = args.save_policy
+    verbose = args.verbose
+    wb = args.wandb
+    # Training:
+    num_steps = args.num_steps
+    # DQN:
     batch_size = args.batch_size
     epsilon_0 = args.epsilon_0
     train_freq = args.train_freq
     discount_factor = args.gamma
     learning_rate = args.learning_rate
     epsilon_min = args.eps_min
-    num_steps = args.num_steps
     exploration_fraction = args.exploration_fraction
     buffer_size = args.buffer_size
-    save_policy = args.save_policy
     tau = args.tau
     update_interval = args.update_interval
     gradient_steps = args.gradient_steps
-    verbose = args.verbose
-    wb = args.wandb
     min_exp = args.min_exp
     
     timestamp = datetime.now().strftime('%Y%m%d.%H%M%S')
