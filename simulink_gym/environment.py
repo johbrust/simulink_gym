@@ -210,7 +210,7 @@ class SimulinkEnv(gym.Env):
         """
         try:
             for obs in self.observations:
-                if not self.model_debug:  #TBD: Setting the initial values automatically if in model debug mode is not yet supported.
+                if not self.model_debug and obs.reinitialize:  #TBD: Setting the initial values automatically if in model debug mode is not yet supported.
                     self.set_block_parameter(obs.block_param)
         except AttributeError:
             raise AttributeError('Environment observations not defined')
