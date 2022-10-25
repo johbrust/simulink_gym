@@ -33,8 +33,6 @@ class CartPoleSimulink(SimulinkEnv):
 
         # Define action space:
         self.continuous_action = continuous_action
-        abs_max_force_N = 10.0
-        self.set_block_parameter(BlockParam(f'{self.env_name}/ForceGain/Gain', abs_max_force_N))
         if self.continuous_action:
             self.action_space = Box(low=-1.0, high=1.0, shape=(1,))
         else:
