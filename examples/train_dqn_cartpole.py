@@ -27,6 +27,7 @@ def main():
     save_policy = args.save_policy
     tau = args.tau
     update_interval = args.update_interval
+    gradient_steps = args.gradient_steps
     verbose = args.verbose
     wb = args.wandb
     min_exp = args.min_exp
@@ -52,6 +53,7 @@ def main():
               "discount_factor": discount_factor,
               "learning_rate": learning_rate,
               "tau": tau,
+              "gradient_steps": gradient_steps,
               }
 
     # Weights & Biases (https://wandb.ai):
@@ -89,6 +91,7 @@ def main():
                 exploration_final_eps=config["epsilon_min"],
                 train_freq=config["train_freq"],
                 tau=config["tau"],
+                gradient_steps=config["gradient_steps"],
                 verbose=verbose,
                 tensorboard_log=str(log_dir)
                 )
@@ -132,6 +135,8 @@ def define_parser():
                         help='Size of replay buffer')
     parser.add_argument('-s', '--save_policy', action='store_true',
                         help='Flag for saving the trained policy')
+    parser.add_argument('-S', '--gradient_steps', metavar='gradient_steps', type=int, default=1,
+                        help='How many gradient steps to do after each rollout')
     parser.add_argument('-t', '--tau', metavar='tau', type=float, default=1.0,
                         help='Soft update coefficient (Polyak update), 1.0 for hard update')
     parser.add_argument('-u', '--update_interval', metavar='update_interval', type=int, default=5000,
