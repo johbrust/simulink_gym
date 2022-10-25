@@ -20,7 +20,7 @@ def main():
     verbose = args.verbose
     wb = args.wandb
     # Training:
-    num_steps = args.num_steps
+    total_timesteps = args.total_timesteps
     # DQN:
     batch_size = args.batch_size
     epsilon_0 = args.epsilon_0
@@ -44,7 +44,7 @@ def main():
     # Create directory if not already existing:
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    config = {"total_timesteps": num_steps,
+    config = {"total_timesteps": total_timesteps,
               "batch_size": batch_size,
               "buffer_size": buffer_size,
               "min_exp": min_exp,
@@ -128,11 +128,9 @@ def define_parser():
     parser.add_argument('-g', '--gamma', metavar='discount_factor', type=float, default=0.99,
                         help='Discount factor of the Bellman update')
     parser.add_argument('-l', '--learning_rate', metavar='learning_rate', type=float, default=1e-4,
-                        help='learning rate')
+                        help='Learning rate (gamma)')
     parser.add_argument('-m', '--eps_min', metavar='epsilon_min', type=float, default=0.05,
                         help='Minimum epsilon value')
-    parser.add_argument('-n', '--num_steps', metavar='num_steps', type=int, default=500000,
-                        help='number of total timesteps to train')
     parser.add_argument('-p', '--exploration_fraction', metavar='exploration_fraction', type=float, default=0.1,
                         help='Fraction of entire training period over which the exploration rate is reduced')
     parser.add_argument('-r', '--buffer_size', metavar='buffer_size', type=int, default=10000,
@@ -141,7 +139,9 @@ def define_parser():
                         help='Flag for saving the trained policy')
     parser.add_argument('-S', '--gradient_steps', metavar='gradient_steps', type=int, default=1,
                         help='How many gradient steps to do after each rollout')
-    parser.add_argument('-t', '--tau', metavar='tau', type=float, default=1.0,
+    parser.add_argument('-t', '--total_timesteps', metavar='total_timesteps', type=int, default=500000,
+                        help='Number of total timesteps to train')
+    parser.add_argument('-T', '--tau', metavar='tau', type=float, default=1.0,
                         help='Soft update coefficient (Polyak update), 1.0 for hard update')
     parser.add_argument('-u', '--update_interval', metavar='update_interval', type=int, default=5000,
                         help='Timesteps between update of target network')
