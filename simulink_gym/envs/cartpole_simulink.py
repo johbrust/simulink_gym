@@ -19,17 +19,17 @@ class CartPoleSimulink(SimulinkEnv):
         )
 
         # Define model parameters to set:
-        self.model_parameters = [
-            ('StopTime', stop_time)
-        ]
+        # self.model_parameters = [
+        #     ('StopTime', stop_time)
+        # ]
 
         # Define workspace variables to set:
-        self.workspace_variables = [
-            ('g', 9.08665),
-            ('length_pole', 0.5),
-            ('mass_cart', 1.0),
-            ('mass_pole', 0.1),
-        ]
+        # self.workspace_variables = [
+        #     ('g', 9.08665),
+        #     ('length_pole', 0.5),
+        #     ('mass_cart', 1.0),
+        #     ('mass_pole', 0.1),
+        # ]
 
         # Define action space:
         self.continuous_action = continuous_action
@@ -47,7 +47,8 @@ class CartPoleSimulink(SimulinkEnv):
             Observation("theta",
                         -self.max_pole_angle_rad,
                         self.max_pole_angle_rad,
-                        f'{self.env_name}/Integrator_theta/InitialCondition'),
+                        f'{self.env_name}/Integrator_theta/InitialCondition',
+                        reinitialize=True),
             Observation("omega",
                         -np.inf,
                         np.inf,

@@ -12,6 +12,7 @@ class Observation:
         high: float,
         initial_value_path: str,
         initial_value: Union[int, float] = None,
+        reinitialize = False
     ):
         self.name = name
         self.space = Box(low=np.array([low], dtype=np.float32), high=np.array([high], dtype=np.float32))
@@ -26,6 +27,7 @@ class Observation:
                 f"Observation {self.name}: Initial value {initial_value} not inside space limits"
             )
 
+        self.reinitialize = reinitialize
         self.block_param = BlockParam(initial_value_path, initial_value)
 
     @property
