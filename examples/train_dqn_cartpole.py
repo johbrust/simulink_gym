@@ -64,6 +64,7 @@ def main():
         run = wandb.init(project='simulink_gym',
                          group='simulink_cartpole_env',
                          job_type='examples',
+                         tags=['DQN'],
                          sync_tensorboard=True,
                          config=config,
                          dir=log_dir,
