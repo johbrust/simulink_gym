@@ -84,7 +84,7 @@ class CommSocket:
                 # This catches an error appearing after some time in the training process. It seems
                 # that the socket used to send the data to the Simulink model is closing before its
                 # close() method is called. The reasons have to be investigated.
-                logger.warn(f"Something went wrong while closing socket ({self.address}, {self.port})")
+                logger.info(f"Something went wrong while closing socket ({self.address}, {self.port})")
             self.connection = None
             self.address = None
         else:
