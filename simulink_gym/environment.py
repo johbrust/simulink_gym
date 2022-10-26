@@ -214,7 +214,7 @@ class SimulinkEnv(gym.Env):
         """
         # Check validity of set_values and for running simulation:
         if set_values.shape == self.action_space.shape and self.simulation_thread.is_alive():
-            self.send_socket.send_data(set_values)
+            self.send_socket.send_data(set_values, stop)
         elif not self.simulation_thread.is_alive():
             logger.info("No simulation running currently. No data can be sent.")
         else:
