@@ -2,6 +2,8 @@ import threading
 import socket
 from simulink_gym import logger
 import array
+import numpy as np
+import struct
 
 
 class CommSocket:
@@ -60,8 +62,11 @@ class CommSocket:
             logger.error(f'{self._debug_prefix}Socket not connected, nothing to receive')
             return None
 
-    def send_msg(self, msg):
+    def send_data(self, set_values: np.ndarray, stop: bool = False):
         if self.is_connected():
+            set_values = set_values.flatten()
+            byte_order_str = '<d' + 'd'*set_values.size
+            msg = struct.pack(byte_order_str, int(stop), *set_values)
             self.connection.sendall(msg)
         else:
             logger.error(f'{self._debug_prefix}Socket not connected, data not sent')

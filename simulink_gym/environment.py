@@ -3,7 +3,6 @@ import matlab.engine
 import gym
 from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
-import struct
 import numpy as np
 from typing import List, Union, Tuple
 from pathlib import Path
@@ -151,11 +150,7 @@ class SimulinkEnv(gym.Env):
 
     def send_data(self, set_values: np.ndarray, stop=False):
         if set_values.shape == self.action_space.shape and self.simulation_thread.is_alive():
-            set_values = set_values.flatten()
-            byte_order_str = '<d' + 'd'*set_values.size
-            msg = struct.pack(byte_order_str, int(stop), *set_values)
-            logger.debug(f'Sending {set_values}')
-            self.send_socket.send_msg(msg)
+            self.send_socket.send_data(set_values)
         elif not self.simulation_thread.is_alive():
             logger.debug("No simulation running currently. No data can be sent.")
         else:
