@@ -98,5 +98,5 @@ class CommSocket:
     def is_connected(self):
         return False if ((self.connection is None) or self.socket_thread.is_alive()) else True
 
-    def await_connection(self, timeout: float = None):
+    def wait_for_connection(self, timeout: float = None):
         self.socket_thread.join(timeout=timeout)

@@ -110,10 +110,8 @@ class SimulinkEnv(gym.Env):
             logger.debug('Simulation thread started')
 
         # Wait for connection to be established:
-        logger.debug('Waiting for connection')
-        self.send_socket.await_connection()
-        self.recv_socket.await_connection()
-        logger.debug('Connection established')
+        self.send_socket.wait_for_connection()
+        self.recv_socket.wait_for_connection()
 
         # Reset truncated and terminated flags:
         self.truncated = False
