@@ -1,5 +1,5 @@
 from simulink_gym import SimulinkEnv, Observation, Observations
-from gym.spaces import Box, Discrete
+from gym.spaces import Discrete
 from pathlib import Path
 import numpy as np
 import math
@@ -12,7 +12,7 @@ class CartPoleSimulink(SimulinkEnv):
     #TBD: This implementation should correspond to the original Gym implementation.
     """
 
-    def __init__(self, continuous_action=False, model_debug=False, stop_time=100):
+    def __init__(self, model_debug=False, stop_time=100):
         super().__init__(
             model_path=Path(__file__).parent.absolute().joinpath("cartpole_simulink.slx"),
             model_debug=model_debug,
@@ -34,11 +34,7 @@ class CartPoleSimulink(SimulinkEnv):
         # ]
 
         # Define action space:
-        self.continuous_action = continuous_action
-        if self.continuous_action:
-            self.action_space = Box(low=-1.0, high=1.0, shape=(1,))
-        else:
-            self.action_space = Discrete(3)
+        self.action_space = Discrete(3)
 
         # Define state and observations:
         self.max_cart_position = 1.0
@@ -94,10 +90,7 @@ class CartPoleSimulink(SimulinkEnv):
     def step(self, action):
         """Method for stepping the simulation."""
 
-        if self.continuous_action:
-            action = np.array(action, ndmin=1, dtype=self.action_space.dtype)
-        else:
-            action = int(action)
+        action = int(action)
         
         state, simulation_time, terminated, truncated = self.sim_step(action)
 
@@ -112,7 +105,7 @@ class CartPoleSimulink(SimulinkEnv):
             or current_theta > 2.0*self.max_pole_angle_rad
         )
 
-        # Receive reward for every step inside state limits:
+        # Receive reward for every step inside state and time limits:
         reward = 1
 
         info = {"simulation time [s]": simulation_time}
