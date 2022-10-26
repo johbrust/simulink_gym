@@ -236,7 +236,7 @@ class SimulinkEnv(gym.Env):
             value: int or float
                 value of the workspace variable
         """
-        # Funktionality only available if not in debug mode:
+        # Functionality only available if not in debug mode:
         if not self.model_debug:
             self.sim_input = self.matlab_engine.setVariable(self.sim_input, var, value, 'Workspace', self.env_name)
 
@@ -260,7 +260,7 @@ class SimulinkEnv(gym.Env):
             parameter: BlockParam
                 parameter defined by a BlockParam object (defines path and value)
         """
-        # Funktionality only available if not in debug mode:
+        # Functionality only available if not in debug mode:
         if not self.model_debug:
             block_path = str(Path(parameter.parameter_path).parent)
             param = str(Path(parameter.parameter_path).stem)
@@ -281,7 +281,7 @@ class SimulinkEnv(gym.Env):
             value: int or float
                 value of the model parameter
         """
-        # Funktionality only available if not in debug mode:
+        # Functionality only available if not in debug mode:
         if not self.model_debug:
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
 
@@ -304,7 +304,7 @@ class SimulinkEnv(gym.Env):
         """
         try:
             for obs in self.observations:
-                # Funktionality only available if not in debug mode and if the respective state
+                # Functionality only available if not in debug mode and if the respective state
                 # variable/observation should be reset:
                 if not self.model_debug and obs.reinitialize:
                     self.set_block_parameter(obs.block_param)
