@@ -11,23 +11,27 @@ from .utils import CommSocket, BlockParam
 
 
 class SimulinkEnv(gym.Env):
+    """Wrapper class for using Simulink models through the Gym interface."""
 
+    # Observations to be defined in child class:
     observations: Observations
 
     def __init__(self,
                  model_path: str,
-                 send_port=42313,
-                 recv_port=42312,
-                 model_debug=False):
-        """Define an environment.
+                 send_port:int = 42313,
+                 recv_port: int = 42312,
+                 model_debug: bool = False):
+        """Simulink environment base class implementing the Gym interface.
 
         Parameters:
-            model_path : str
+            model_path: str
                 path to the model file
-            send_port : int, default 42313
+            send_port: int, default 42313
                 TCP/IP port for sending
-            recv_port : int, default 42312
+            recv_port: int, default 42312
                 TCP/IP port for receiving
+            model_debug: bool, default: False
+                flag for debugging simulink model files (.slx)
         """
         self.model_path = Path(model_path)
         if not self.model_path.exists():
@@ -39,24 +43,30 @@ class SimulinkEnv(gym.Env):
         self.env_name = self.model_path.stem
         self.simulation_time = 0
         self.state = None
-        self.terminated = True
-        self.truncated = True
         self.model_debug = model_debug
+
+        # Already prepared replacement for the done flag for Gym/Gymnasium>=0.26.0:
+        self.terminated = True  
+        self.truncated = True
+
+        # List of workspace variables and model parameters of the Simulink model
+        # which will be set automatically in self._reset(). These can be populated
+        # in the child class.
         self.workspace_variables: List[Tuple] = []
         self.model_parameters: List[Tuple] = []
 
-        # Create TCP/IP sockets:
+        # Create TCP/IP sockets for communication between model and Python wrapper:
         self.recv_socket = CommSocket(recv_port, 'recv_socket')
         self.send_socket = CommSocket(send_port, 'send_socket')
 
         if not self.model_debug:
-            # Create simulation thread:
+            # Setup simulation thread and Matlab engine if not in debug mode:
             self.simulation_thread = threading.Thread()
-
             # Setup Matlab engine:
             logger.info('Starting Matlab engine')
             matlab_started = False
             start_trials = 0
+            # Try to start Matlab engine:
             while not matlab_started and start_trials < 3:
                 try:
                     self.matlab_engine = matlab.engine.start_matlab()
@@ -68,46 +78,47 @@ class SimulinkEnv(gym.Env):
                     logger.info(f'Adding components to Matlab path')
                     self.matlab_path = self.matlab_engine.addpath(str(SIMULINK_BLOCK_LIB_PATH))
                     self.matlab_path = self.matlab_engine.addpath(str(self.model_dir.absolute()))
-                    # Create simulation input object:
+                    # Create simulation as SimulationInput object:
                     logger.info(f'Creating simulation input object for model {self.env_name}.slx')
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(self.env_name)
             if not matlab_started and start_trials >= 3:
                 raise RuntimeError('Unable to start Matlab engine.')
         else:
+            # Variables not needed in debug mode:
             self.simulation_thread = None
             self.matlab_engine = None
             self.matlab_path = None
             self.sim_input = None
 
     def __del__(self):
+        """Deletion of environment needs to also quit the Matlab engine."""
         self.close()
         # Close matlab engine:
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
 
-    def _reset(self):  #, seed: Optional[int] = None):
-        # super().reset(seed=seed)
-
+    def _reset(self):
+        """Method implementing the generic reset behavior.
+        
+        This method stops a running simulation, closes and reopens the communication sockets
+        and restarts the simulation. Defined model parameters and workspace variables will
+        also be reset.
+        """
         if self.simulation_thread.is_alive():
             self.stop_simulation()
 
         self.close_sockets()
         self.open_sockets()
 
-        # Set initial values:
         self.state = self.set_initial_values()
 
         if not self.model_debug:
-            # Set model parameters and workspace variables:
             self._set_model_parameters()
             self._set_workspace_variables()
             # Create and start simulation thread:
-            logger.debug('Creating simulation thread')
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
                                                       args=(self.sim_input,))
-            logger.debug('Starting simulation thread')
             self.simulation_thread.start()
-            logger.debug('Simulation thread started')
 
         # Wait for connection to be established:
         self.send_socket.wait_for_connection()
@@ -118,9 +129,34 @@ class SimulinkEnv(gym.Env):
         self.terminated = False
 
     def reset(self):
+        """Method required by the Gym interface to be implemented by the child class.
+        
+        The child implementation is supposed to call _reset() and has to return the state.
+        """
         raise NotImplementedError
 
     def sim_step(self, action):
+        """Stepping method for the Simulink model.
+
+        This method implements the stepping of the Simulink model which should be called
+        by the child implementation of the step method.
+
+        Parameters:
+            action
+                action to be executed at the beginning of next simulation step, needs to
+                match the defined action space
+
+        Returns:
+            state: numpy.ndarray
+                current state of the environment (according to the observation space)
+            simulation_time: float
+                current simulation time in seconds
+            truncated: bool
+                indicator for truncation condition (ending despite not reaching a
+                terminal state)
+            terminated: bool
+                indicator for reaching a terminal state
+        """
         if self.simulation_thread.is_alive():
             # Check validity of action:
             if not self.action_space.contains(action):
@@ -132,42 +168,84 @@ class SimulinkEnv(gym.Env):
             # When the simulation is truncated an empty message is sent:
             if not recv_data:
                 self.truncated = True
-                self.terminated = True
-                logger.debug("Episode done.")
             else:
+                # Extract simulation state from received data:
                 self.state = np.array(recv_data[0:-1], dtype=np.float32)
-                self.simulation_time = recv_data[-1]  # simulation timestamp is last entry
-                logger.debug(f'Simulation state: {self.state} ({self.simulation_time} s)')
+                # Simulation timestamp is the last entry:
+                self.simulation_time = recv_data[-1]
         else:
-            logger.info("No simulation running currently. No stepping possible.")
+            # If the simulation is not alive, stepping is not possible and the simulation most
+            # likely was already truncated.
+            logger.warn("No simulation running currently. No stepping possible.")
+            self.truncated = True
 
         return self.state, self.simulation_time, self.truncated, self.terminated
 
     def step(self, action):
+        """Method required by the Gym interface to be implemented by the child class.
+        
+        The child method is supposed to call sim_step().
+        
+        Parameters:
+            action
+                action to be executed at the beginning of next simulation step, needs to
+                match the defined action space
+
+        Returns:
+            state
+                current state of the environment (according to the observation space)
+            reward: float
+                reward signal from the environment for reaching current state
+            done: bool
+                flag indicating termination or truncation of the episode
+            info: dict
+                dict of auxiliary diagnostic information, e.g. simulation time
+        """
         raise NotImplementedError
 
-    def send_data(self, set_values: np.ndarray, stop=False):
+    def send_data(self, set_values: np.ndarray, stop: bool = False):
+        """Method for sending the data to the Simulink model.
+        
+        Parameters
+            set_values: numpy.ndarray
+                numpy array containing the data, according to action space
+            stop: bool, default: False
+                flag for stopping the simulation
+        """
+        # Check validity of set_values and for running simulation:
         if set_values.shape == self.action_space.shape and self.simulation_thread.is_alive():
             self.send_socket.send_data(set_values)
         elif not self.simulation_thread.is_alive():
-            logger.debug("No simulation running currently. No data can be sent.")
+            logger.info("No simulation running currently. No data can be sent.")
         else:
             raise Exception(f"Wrong shape of data. The shape is {set_values.shape}, but should be {self.action_space.shape}.")
 
-    def set_workspace_variable(self, var, value):
+    def set_workspace_variable(self, var: str, value: Union[int, float]):
         """Set variable in model workspace.
 
         Variables in the model workspace take precedence over variables in other workspaces. If blocks use
         variables from the workspace, their value can be set by using this function.
         
         See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setvariable.html
+
+        Use this functionality sparsely as it can consume a lot of memory if executed often!
+
+        Parameters:
+            var: string
+                variable name
+            value: int or float
+                value of the workspace variable
         """
+        # Funktionality only available if not in debug mode:
         if not self.model_debug:
-            logger.debug(f'Setting variable {var} to {value} in model workspace')
             self.sim_input = self.matlab_engine.setVariable(self.sim_input, var, value, 'Workspace', self.env_name)
 
     def _set_workspace_variables(self):
-        """Set all workspace variables."""
+        """Set all workspace variables listed in self.workspace_variables.
+        
+        This method sets all workspace variables defined in self.workspace_variables as a list of
+        tuples of (var: string, value: Union[int, float]).
+        """
         for var, value in self.workspace_variables:
             self.set_workspace_variable(var, value)
 
@@ -175,12 +253,18 @@ class SimulinkEnv(gym.Env):
         """Set parameter values of Simulink blocks.
         
         See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setblockparameter.html
+
+        Use this functionality sparsely as it can consume a lot of memory if executed often!
+
+        Parameters:
+            parameter: BlockParam
+                parameter defined by a BlockParam object (defines path and value)
         """
+        # Funktionality only available if not in debug mode:
         if not self.model_debug:
             block_path = str(Path(parameter.parameter_path).parent)
             param = str(Path(parameter.parameter_path).stem)
             value = str(parameter.value)
-            logger.debug(f'Setting parameter {param} of block {block_path} to value {value}')
             self.sim_input = self.matlab_engine.setBlockParameter(self.sim_input, block_path, param,
                                                                   value)
 
@@ -188,22 +272,41 @@ class SimulinkEnv(gym.Env):
         """Set Simulink model parameters.
         
         See: https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setmodelparameter.html
+
+        Use this functionality sparsely as it can consume a lot of memory if executed often!
+
+        Parameters:
+            param: string
+                parameter name
+            value: int or float
+                value of the model parameter
         """
+        # Funktionality only available if not in debug mode:
         if not self.model_debug:
-            logger.debug(f'Setting model parameter {param} to value {value:.3g}')
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
 
     def _set_model_parameters(self):
-        """Set all model parameters."""
+        """Set all model parameters.
+        
+        This method sets all model parameters defined in self.model_parameters as a list of
+        tuples of (parameter: string, value: Union[int, float]).
+        """
         for parameter, value in self.model_parameters:
             self.set_model_parameter(parameter, value)
 
     def set_initial_values(self):
-        """Set the initial values of the state/observations.        
+        """Set the initial values of the state/observations.
+
+        Used for resetting the environment.
+
+        Returns:
+            initial state according to observation space        
         """
         try:
             for obs in self.observations:
-                if not self.model_debug and obs.reinitialize:  #TBD: Setting the initial values automatically if in model debug mode is not yet supported.
+                # Funktionality only available if not in debug mode and if the respective state
+                # variable/observation should be reset:
+                if not self.model_debug and obs.reinitialize:
                     self.set_block_parameter(obs.block_param)
         except AttributeError:
             raise AttributeError('Environment observations not defined')
@@ -211,35 +314,47 @@ class SimulinkEnv(gym.Env):
         return self.observations.initial_state
 
     def _send_stop_signal(self):
+        """Method for sending the stop signal to the simulation."""
         set_values = np.zeros(self.action_space.shape)
         self.send_data(set_values, stop=True)
 
     def stop_simulation(self):
+        """Method for stopping the simulation."""
         if self.simulation_thread.is_alive():
-            self._send_stop_signal()
-            # Clear receive data queue:
-            _ = self.recv_socket.receive()
-            if not self.model_debug:
-                self.simulation_thread.join()
+            try:
+                self._send_stop_signal()
+            except:
+                # Connection already lost
+                logger.info("Stop signal could not be sent, connection probably already dead")
+            else:
+                # Clear receive data queue:
+                _ = self.recv_socket.receive()
+            finally:
+                if not self.model_debug:
+                    self.simulation_thread.join()
 
         self.truncated = True
 
     def open_sockets(self):
-        logger.debug('Opening sockets')
+        """Method for opening the sockets for communication with the simulation."""
         self.recv_socket.open_socket()
         self.send_socket.open_socket()
 
     def close_sockets(self):
-        logger.debug('Closing sockets')
+        """Method for closing the sockets for communication with the simulation."""
         self.recv_socket.close()
         self.send_socket.close()
 
     def close(self):
+        """Method for closing/shutting down the simulation."""
         self.stop_simulation()
-        logger.debug('Closing environment')
         # Close sockets:
         self.close_sockets()
-        logger.debug('Environment closed')
 
     def render(self):
+        """Render method recommended by the Gym interface.
+        
+        Since Simulink models don't share a common representation suitable for rendering
+        such a method is not possible to implement.
+        """
         pass
