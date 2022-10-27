@@ -1,0 +1,38 @@
+[project]
+name = "simulink_gym"
+description = "Gym Interface Wrapper for Simulink Models"
+readme = "Readme.md"
+requires-python = ">=3.8"
+keywords = ["reinforcement learning", "gym", "Matlab", "Simulink"]
+license = {file = "License"}
+authors = [
+  {name="Johannes Brust", email="johannes.brust@gmail.com"},
+]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "gym == 0.21.0",
+    "numpy",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+wandb = ["wandb"]
+examples = ["stable-baselines3", "rich", "tdqm", "tensorboard"]
+
+[project.urls]
+"Homepage" = "https://github.com/johbrust/simulink_gym"
+"Bug Tracker" = "https://github.com/johbrust/simulink_gym/issues"
+
+[tool.setuptools]
+packages = ["simulink_gym"]
+
+[tool.setuptools.dynamic]
+version = {attr = "simulink_gym.__version__"}
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
