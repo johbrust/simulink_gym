@@ -128,7 +128,7 @@ def define_parser():
     parser.add_argument('-g', '--gamma', metavar='discount_factor', type=float, default=0.99,
                         help='Discount factor of the Bellman update')
     parser.add_argument('-l', '--learning_rate', metavar='learning_rate', type=float, default=1e-4,
-                        help='Learning rate (gamma)')
+                        help='Learning rate')
     parser.add_argument('-m', '--eps_min', metavar='epsilon_min', type=float, default=0.05,
                         help='Minimum epsilon value')
     parser.add_argument('-p', '--exploration_fraction', metavar='exploration_fraction', type=float, default=0.1,
