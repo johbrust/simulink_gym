@@ -1,6 +1,6 @@
 # Simulink Implementation of the Cart Pole Environment
 
-This implementation of the cart pole environment uses the standard Simulink blocks to model the underlying differential equations of the dynamics.
+This implementation of the classic cart pole environment uses the standard Simulink blocks to model the underlying differential equations of the dynamics (see [here](https://coneural.org/florian/papers/05_cart_pole.pdf)).
 
 ## Model parameters
 
@@ -15,4 +15,4 @@ The dynamics of the system are defined by the following physical properties of t
 | initial cart position                     | `x_0`         | 0 m                         |
 | initial pole angle                        | `theta_0`     | random value in [-12°, 12°] |
 
-The model parameters are saved in the [model workspace](https://www.mathworks.com/help/simulink/ug/using-model-workspaces.html). 
+The model parameters are saved in the [model workspace](https://www.mathworks.com/help/simulink/ug/using-model-workspaces.html).
