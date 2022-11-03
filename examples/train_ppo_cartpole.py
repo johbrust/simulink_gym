@@ -110,7 +110,7 @@ def define_parser():
     parser.add_argument('-g', '--gamma', metavar='discount_factor', type=float, default=0.99,
                         help='Discount factor of the Bellman update')
     parser.add_argument('-l', '--learning_rate', metavar='learning_rate', type=float, default=3e-4,
-                        help='Learning rate (gamma)')
+                        help='Learning rate')
     parser.add_argument('-n', '--num_steps', metavar='num_steps', type=int, default=2048,
                         help='The number of steps to run for each environment per update (rollout length)')
     parser.add_argument('-s', '--save_policy', action='store_true',
