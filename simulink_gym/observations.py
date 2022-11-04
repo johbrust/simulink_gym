@@ -2,6 +2,7 @@ from gym.spaces import Box
 from typing import Union, List
 from .utils import BlockParam
 import numpy as np
+from simulink_gym import logger
 
 
 class Observation:
@@ -36,13 +37,13 @@ class Observation:
                 flag for reinitialization when resetting the environment
         """
         self.name = name
-        self.space = Box(low=np.array([low], dtype=np.float32), high=np.array([high], dtype=np.float32))
+        self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
 
         # Sample initial value if not defined:
         if initial_value is None:
             initial_value = self.space.sample()
         else:
-            initial_value = np.array([initial_value], dtype=np.float32)
+            initial_value = initial_value
 
         self._check_initial_value(initial_value)
 
@@ -50,9 +51,10 @@ class Observation:
         self.block_param = BlockParam(initial_value_path, initial_value)
 
     def _check_initial_value(self, value):
+        value = np.array(value, dtype=np.float32)
         if not self.space.contains(value):
             raise ValueError(
-                f"Observation {self.name}: Initial value {value} not inside space limits"
+                f"Observation {self.name}: Initial value {value} not inside space limits ([{self.space.low}, {self.space.high}]). {self.space.shape}, {value.shape}"
             )
 
     @property
@@ -63,7 +65,8 @@ class Observation:
     @initial_value.setter
     def initial_value(self, value):
         """Set method for the initial value"""
-        self._check_initial_value(value)
+        logger.debug(f'Setting {self.name} to {value}')
+        self._check_initial_value(np.array(value, ndmin=1, dtype=np.float32))
         self.block_param.value = value
 
     def resample_initial_value(self):
@@ -82,8 +85,8 @@ class Observations:
         """
         self._observations = observations
         # Create combined observation space from single observations:
-        lows = np.array([observation.space.low[0] for observation in self._observations], dtype=np.float32)
-        highs = np.array([observation.space.high[0] for observation in self._observations], dtype=np.float32)
+        lows = np.array([observation.space.low for observation in self._observations], dtype=np.float32)
+        highs = np.array([observation.space.high for observation in self._observations], dtype=np.float32)
         self.space = Box(low=lows, high=highs)
 
     def __getitem__(self, index: int):
@@ -105,5 +108,5 @@ class Observations:
     @property
     def initial_state(self):
         """Combined initial state of all observations as numpy array."""
-        initial_state = [obs.initial_value[0] for obs in self._observations]
+        initial_state = [obs.initial_value for obs in self._observations]
         return np.array(initial_state)
