@@ -34,43 +34,33 @@ class CartPoleSimulink(SimulinkEnv):
         # ]
 
         # Define action space:
-        self.action_space = Discrete(3)
+        self.action_space = Discrete(2)
 
         # Define state and observations:
-        self.max_cart_position = 1.0
-        max_pole_angle_deg = 8
+        self.max_cart_position = 2.4
+        max_pole_angle_deg = 12
         self.max_pole_angle_rad = max_pole_angle_deg*math.pi/180.0
         self.observations = Observations([
+            Observation("pos", 
+                        -self.max_cart_position * 2.0,
+                        self.max_cart_position * 2.0,
+                        f'{self.env_name}/Integrator_position/InitialCondition',
+                        reinitialize=True),
+            Observation("vel",
+                        -np.inf,
+                        np.inf,
+                        f'{self.env_name}/Integrator_speed/InitialCondition',
+                        reinitialize=True),
             Observation("theta",
-                        -self.max_pole_angle_rad,
-                        self.max_pole_angle_rad,
+                        -self.max_pole_angle_rad * 2.0,
+                        self.max_pole_angle_rad * 2.0,
                         f'{self.env_name}/Integrator_theta/InitialCondition',
                         reinitialize=True),
             Observation("omega",
                         -np.inf,
                         np.inf,
                         f'{self.env_name}/Integrator_omega/InitialCondition',
-                        0.0),
-            Observation("alpha",
-                        -np.inf,
-                        np.inf,
-                        f'{self.env_name}/IC1/Value',
-                        0.0),
-            Observation("pos", 
-                        -self.max_cart_position,
-                        self.max_cart_position,
-                        f'{self.env_name}/Integrator_position/InitialCondition',
-                        0.0),
-            Observation("vel",
-                        -np.inf,
-                        np.inf,
-                        f'{self.env_name}/Integrator_speed/InitialCondition',
-                        0.0),
-            Observation("acc",
-                        -np.inf,
-                        np.inf,
-                        f'{self.env_name}/IC/Value',
-                        0.0)
+                        reinitialize=True),
         ])
         self.observation_space = self.observations.space
 
@@ -79,7 +69,8 @@ class CartPoleSimulink(SimulinkEnv):
 
     def reset(self):
         # Resample initial state of theta:
-        self.observations[0].resample_initial_value()
+        for observation in self.observations:
+            observation.resample_initial_value()
 
         # Call common reset:
         super()._reset()
@@ -95,8 +86,8 @@ class CartPoleSimulink(SimulinkEnv):
         state, simulation_time, terminated, truncated = self.sim_step(action)
 
         # Check all termination conditions:
-        current_theta = state[0]
-        current_pos = state[3]
+        current_pos = state[0]
+        current_theta = state[2]
         terminated = bool(
             terminated or
             current_pos < -self.max_cart_position
