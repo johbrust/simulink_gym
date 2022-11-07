@@ -41,7 +41,7 @@ class Observation:
 
         # Sample initial value if not defined:
         if initial_value is None:
-            initial_value = self.space.sample()
+            initial_value = self.space.sample()[0]
         else:
             initial_value = initial_value
 
@@ -51,7 +51,7 @@ class Observation:
         self.block_param = BlockParam(initial_value_path, initial_value)
 
     def _check_initial_value(self, value):
-        value = np.array(value, dtype=np.float32)
+        value = np.array(value, ndmin=1, dtype=np.float32)
         if not self.space.contains(value):
             raise ValueError(
                 f"Observation {self.name}: Initial value {value} not inside space limits ([{self.space.low}, {self.space.high}]). {self.space.shape}, {value.shape}"
@@ -71,7 +71,7 @@ class Observation:
 
     def resample_initial_value(self):
         """Resample the initial value according to observation space."""
-        self.block_param.value = self.space.sample()
+        self.block_param.value = self.space.sample()[0]
 
 
 class Observations:
@@ -85,8 +85,8 @@ class Observations:
         """
         self._observations = observations
         # Create combined observation space from single observations:
-        lows = np.array([observation.space.low for observation in self._observations], dtype=np.float32)
-        highs = np.array([observation.space.high for observation in self._observations], dtype=np.float32)
+        lows = np.array([observation.space.low[0] for observation in self._observations], dtype=np.float32)
+        highs = np.array([observation.space.high[0] for observation in self._observations], dtype=np.float32)
         self.space = Box(low=lows, high=highs)
 
     def __getitem__(self, index: int):
