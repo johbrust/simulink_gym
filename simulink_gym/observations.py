@@ -101,8 +101,21 @@ class Observations:
         """Method for determining number of observations."""
         return len(self._observations)
 
+    def resample_all_initial_values(self):
+        """Resampling all observations."""
+        self.initial_state = self.space.sample()
+
     @property
     def initial_state(self):
         """Combined initial state of all observations as numpy array."""
         initial_state = [obs.initial_value for obs in self._observations]
         return np.array(initial_state)
+
+    @initial_state.setter
+    def initial_state(self, values: np.ndarray):
+        """Set method for the initial state"""
+        if values.shape == self.space.shape:
+            for index, observation in enumerate(self._observations):
+                observation.initial_value = values[index]
+        else:
+            raise ValueError(f"Shape of values ({values.shape}) not equal to shape of observations ({self.space.shape})")
