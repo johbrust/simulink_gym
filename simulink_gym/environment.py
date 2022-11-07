@@ -174,7 +174,7 @@ class SimulinkEnv(gym.Env):
             self.send_data(np.array(action))
             # Receive data:
             recv_data = self.recv_socket.receive()
-            # When the simulation is truncated an empty message is sent:
+            # When the simulation is truncated an empty message is received:
             if not recv_data:
                 self.truncated = True
             else:
