@@ -109,7 +109,7 @@ class Observations:
     def initial_state(self):
         """Combined initial state of all observations as numpy array."""
         initial_state = [obs.initial_value for obs in self._observations]
-        return np.array(initial_state)
+        return np.array(initial_state, ndmin=1, dtype=np.float32)
 
     @initial_state.setter
     def initial_state(self, values: np.ndarray):
