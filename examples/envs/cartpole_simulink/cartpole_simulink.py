@@ -80,7 +80,6 @@ class CartPoleSimulink(SimulinkEnv):
                         np.inf,
                         f'{self.env_name}/Integrator_omega/InitialCondition'),
         ])
-        self.observation_space = self.observations.space
 
         # Get initial state from defined observations:
         self.state = self.observations.initial_state
