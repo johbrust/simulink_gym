@@ -14,8 +14,7 @@ class Observation:
         low: float,
         high: float,
         initial_value_path: str,
-        initial_value: Union[int, float] = None,
-        reinitialize: bool = False
+        initial_value: Union[int, float] = None
     ):
         """Class representing environment observations.
         
@@ -33,8 +32,6 @@ class Observation:
             initial_value: int or float, default: None
                 initial value of the observation (see BlockParam.value), the value will be sampled
                 from the observation space if None
-            reinitialize: bool, default: False
-                flag for reinitialization when resetting the environment
         """
         self.name = name
         self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
@@ -47,7 +44,6 @@ class Observation:
 
         self._check_initial_value(initial_value)
 
-        self.reinitialize = reinitialize
         self.block_param = BlockParam(initial_value_path, initial_value)
 
     def _check_initial_value(self, value):
