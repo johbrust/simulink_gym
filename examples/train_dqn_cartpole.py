@@ -19,6 +19,7 @@ def main():
     save_policy = args.save_policy
     verbose = args.verbose
     wb = args.wandb
+    benchmark = args.benchmark
     # Training:
     total_timesteps = args.total_timesteps
     # DQN:
@@ -65,7 +66,7 @@ def main():
         from wandb.integration.sb3 import WandbCallback
         os.environ['WANDB_DISABLE_GIT'] = 'True'
         run = wandb.init(project='simulink_gym',
-                         group='simulink_cartpole_env',
+                         group='simulink_cartpole_env' if not benchmark else 'gym_cartpole_env',
                          job_type='examples',
                          tags=['DQN'],
                          sync_tensorboard=True,
@@ -79,7 +80,11 @@ def main():
         callback = None
 
     # Create training environment:
-    env = CartPoleSimulink(stop_time=20)
+    if not benchmark:
+        env = CartPoleSimulink()
+    else:
+        import gym
+        env = gym.make("CartPole-v1")
 
     # Create learning agent:
     agent = DQN("MlpPolicy",
@@ -119,6 +124,8 @@ def define_parser():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-b', '--batch_size', metavar='batch_size', type=int, default=32,
                         help='Minibatch size for gradient update')
+    parser.add_argument('-B', '--benchmark', action='store_true',
+                        help='Flag for training in gym implementation CartPole-v1')
     parser.add_argument('-d', '--log_dir', metavar='log_dir', type=str, default='./logs',
                         help='Path for logs and optional saved policy')
     parser.add_argument('-e', '--epsilon_0', metavar='epsilon_0', type=float, default=1.0,
