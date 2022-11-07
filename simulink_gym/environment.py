@@ -4,7 +4,7 @@ import gym
 from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
 import numpy as np
-from typing import List, Union, Tuple
+from typing import Union
 from pathlib import Path
 from .observations import Observations
 from .utils import CommSocket, BlockParam
