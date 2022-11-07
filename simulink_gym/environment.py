@@ -303,10 +303,10 @@ class SimulinkEnv(gym.Env):
             initial state according to observation space        
         """
         try:
-            for obs in self.observations:
-                # Functionality only available if not in debug mode and if the respective state
-                # variable/observation should be reset:
-                if not self.model_debug and obs.reinitialize:
+            # Functionality only available if not in debug mode and if the respective state
+            # variable/observation should be reset:
+            if not self.model_debug:
+                for obs in self.observations:
                     self.set_block_parameter(obs.block_param)
         except AttributeError:
             raise AttributeError('Environment observations not defined')
