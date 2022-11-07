@@ -49,12 +49,6 @@ class SimulinkEnv(gym.Env):
         self.terminated = True  
         self.truncated = True
 
-        # List of workspace variables and model parameters of the Simulink model
-        # which will be set automatically in self._reset(). These can be populated
-        # in the child class.
-        self.workspace_variables: List[Tuple] = []
-        self.model_parameters: List[Tuple] = []
-
         # Create TCP/IP sockets for communication between model and Python wrapper:
         self.recv_socket = CommSocket(recv_port, 'recv_socket')
         self.send_socket = CommSocket(send_port, 'send_socket')
@@ -101,8 +95,7 @@ class SimulinkEnv(gym.Env):
         """Method implementing the generic reset behavior.
         
         This method stops a running simulation, closes and reopens the communication sockets
-        and restarts the simulation. Defined model parameters and workspace variables will
-        also be reset.
+        and restarts the simulation.
         """
         if self.simulation_thread.is_alive():
             self.stop_simulation()
@@ -113,8 +106,6 @@ class SimulinkEnv(gym.Env):
         self.state = self.set_initial_values()
 
         if not self.model_debug:
-            self._set_model_parameters()
-            self._set_workspace_variables()
             # Create and start simulation thread:
             self.simulation_thread = threading.Thread(name='sim thread', target=self.matlab_engine.sim,
                                                       args=(self.sim_input,))
@@ -240,15 +231,6 @@ class SimulinkEnv(gym.Env):
         if not self.model_debug:
             self.sim_input = self.matlab_engine.setVariable(self.sim_input, var, value, 'Workspace', self.env_name)
 
-    def _set_workspace_variables(self):
-        """Set all workspace variables listed in self.workspace_variables.
-        
-        This method sets all workspace variables defined in self.workspace_variables as a list of
-        tuples of (var: string, value: Union[int, float]).
-        """
-        for var, value in self.workspace_variables:
-            self.set_workspace_variable(var, value)
-
     def set_block_parameter(self, parameter: BlockParam):
         """Set parameter values of Simulink blocks.
         
@@ -284,15 +266,6 @@ class SimulinkEnv(gym.Env):
         # Functionality only available if not in debug mode:
         if not self.model_debug:
             self.sim_input = self.matlab_engine.setModelParameter(self.sim_input, param, str(value))
-
-    def _set_model_parameters(self):
-        """Set all model parameters.
-        
-        This method sets all model parameters defined in self.model_parameters as a list of
-        tuples of (parameter: string, value: Union[int, float]).
-        """
-        for parameter, value in self.model_parameters:
-            self.set_model_parameter(parameter, value)
 
     def set_initial_values(self):
         """Set the initial values of the state/observations.
