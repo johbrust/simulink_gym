@@ -14,7 +14,7 @@ class SimulinkEnv(gym.Env):
     """Wrapper class for using Simulink models through the Gym interface."""
 
     # Observations to be defined in child class:
-    observations: Observations
+    _observations: Observations
 
     def __init__(self,
                  model_path: str,
@@ -90,6 +90,24 @@ class SimulinkEnv(gym.Env):
         # Close matlab engine:
         if self.matlab_engine is not None:
             self.matlab_engine.quit()
+
+    @property
+    def observations(self):
+        """Getter method for observations."""
+        return self._observations
+
+    @observations.setter
+    def observations(self, observations: Observations):
+        """Setter method for observations.
+        
+        Also sets the necessary observation space.
+
+        Parameter:
+            observations: Observations
+                Observations object defining the observations
+        """
+        self._observations = observations
+        self.observation_space = self._observations.space
 
     def _reset(self):
         """Method implementing the generic reset behavior.
