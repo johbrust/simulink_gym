@@ -95,3 +95,16 @@ An environment returns the `done` flag, when the episode is finished. The Simuli
 ## Example Environments
 
 Two different implementations of the classic cart pole environment are provided under [`envs`](./simulink_gym/envs). [One implementation](./simulink_gym/envs/cartpole_simulink.md) uses the basic Simulink blocks, [the other](./simulink_gym/envs/cartpole_simscape.md) is implemented using the [Simscape](https://www.mathworks.com/products/simscape.html) toolbox family.
+
+## Known Issues
+
+The known issues below could not be fixed due to the lack of knowledge about the exact cause. Despite these known issues, there are fixes known to avoid these issues, which are given with each issue.
+
+> :grey_exclamation: If you encounter issues not listed below, please create a new issue or even a pull request if you also already found the fix!
+
+- It sometimes can be observed that after a while two sets of output data are received from the Simulink model when only one action was sent. It is assumed that this is causes by some timing issues of the TCP/IP communication in combination with the update order of the model.
+
+  Fix: All occurrences of this issue could be mitigated by ensuring a certain [block execution order](https://de.mathworks.com/help/simulink/ug/controlling-and-displaying-the-sorted-order.html) of the Simulink model. There are different possibilities to achieve this:
+  
+  1. Set the priorities of the *TCP/IP In* and *TCP/IP Out* blocks to 1 and 2, respectively. Simulink then tries to come up with a block execution order according to these priorities. Unfortunately, setting these priorities does not guarantee that such a block execution order is possible.
+  2. Introduce additional signals in the Simulink model to enforce a certain block execution order. E.g., add a signal of the incoming action to some (dummy) blocks close before the *TCP/IP Out* block.
