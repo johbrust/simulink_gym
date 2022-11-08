@@ -5,7 +5,7 @@ command:
   - ${env}
   - ${interpreter}
   - ${program}
-  - ${args}
+  - ${args_no_boolean_flags}
 method: grid
 parameters:
   benchmark:
