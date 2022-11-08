@@ -1,6 +1,6 @@
 # Wrapper for using Simulink models as Gym Environments
 
-This wrapper establishes the [gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
+This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
 
 The wrapper implements the [`step`](https://www.gymlibrary.dev/api/core/#gym.Env.step), [`reset`](https://www.gymlibrary.dev/api/core/#gym.Env.reset), and [`close`](https://www.gymlibrary.dev/api/core/#gym.Env.close) methods of the interface.
 
@@ -56,7 +56,7 @@ __To Do__:
 
 - [Set up the model](https://www.mathworks.com/help/simulink/slref/setmodelparameter.html)
   - Sample time?
-  - Solver?
+  - [Solver](https://de.mathworks.com/help/simulink/gui/solver.html)?
   - [Block execution order](https://de.mathworks.com/help/simulink/ug/controlling-and-displaying-the-sorted-order.html)
     - add delays or integrators to control the execution order
   - Explain Model Explorer (`CTRL + H`) as a tool for setting up, e.g., the model workspace
@@ -81,7 +81,7 @@ __To Do__:
 
 How to describe the Simulink environment in Python will be described here soon!
 
-- Setting the action and observation space: The action space is set as for the standard gym environment. The observation space needs the custom `observations` parameter (TBD add link to line in code), since the observations are linked to certain blocks in the Simulink model. The order in the `observations` declaration has to match the order of the state mux in the model since it also defines the interpretation of the incoming data (which is defined by the mux). #TBD
+- Setting the action and observation space: The action space is set as for the standard Gym environment. The observation space needs the custom `observations` parameter (TBD add link to line in code), since the observations are linked to certain blocks in the Simulink model. The order in the `observations` declaration has to match the order of the state mux in the model since it also defines the interpretation of the incoming data (which is defined by the mux). #TBD
 - Get the correct name of the block parameter not from the mask but from the documentation! E.g., the integrator block has a `Initial condition` parameter in the mask, but the parameter is set by using `InitialCondition` in the `ParamBlock`.
 
 ## Running the Simulink Model
