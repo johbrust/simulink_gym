@@ -178,10 +178,17 @@ class SimulinkEnv(gym.Env):
             if not recv_data:
                 self.truncated = True
             else:
-                # Extract simulation state from received data:
-                self.state = np.array(recv_data[0:-1], dtype=np.float32)
-                # Simulation timestamp is the last entry:
-                self.simulation_time = recv_data[-1]
+                if len(recv_data) == (self.observation_space.shape[0] + 1):
+                    # Extract simulation state from received data:
+                    self.state = np.array(recv_data[0:-1], ndmin=1, dtype=np.float32)
+                    # Simulation timestamp is the last entry:
+                    self.simulation_time = recv_data[-1]
+                else:
+                    logger.error(f"Length of data received from the Simulink model invalid! Actual length is {len(recv_data)}, " \
+                                 f"but should be {self.observation_space.shape[0] + 1}\n" \
+                                  "There is possibly a problem with the block execution order of the model " \
+                                  "(check project's known issues for more information).")
+                    self.truncated = True
         else:
             # If the simulation is not alive, stepping is not possible and the simulation most
             # likely was already truncated.
