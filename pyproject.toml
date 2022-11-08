@@ -26,6 +26,7 @@ examples = ["stable-baselines3", "rich", "tqdm", "tensorboard"]
 [project.urls]
 "Homepage" = "https://github.com/johbrust/simulink_gym"
 "Bug Tracker" = "https://github.com/johbrust/simulink_gym/issues"
+"Project Management" = "https://quire.io/w/Simulink_Gym"
 
 [tool.setuptools]
 packages = ["simulink_gym"]
