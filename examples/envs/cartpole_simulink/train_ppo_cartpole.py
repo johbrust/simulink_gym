@@ -2,15 +2,15 @@ import os
 import argparse
 import string
 import random
-from envs import CartPoleSimulink
+from cartpole_simulink import CartPoleSimulink
 from stable_baselines3 import PPO
 from pathlib import Path
 from datetime import datetime
 
 def main():
-    """Training the PPO agent.
+    """Training a PPO agent on the cartpole environment.
 
-    Run 'python train_ppo_agent.py -h' for function documentation.
+    Run 'python train_ppo_cartpole.py -h' for function documentation.
     """
     # Parameters:
     parser = define_parser()
@@ -19,6 +19,7 @@ def main():
     save_policy = args.save_policy
     verbose = args.verbose
     wb = args.wandb
+    benchmark = args.benchmark
     # Training:
     total_timesteps = args.total_timesteps
     # PPO:
@@ -53,7 +54,7 @@ def main():
         from wandb.integration.sb3 import WandbCallback
         os.environ['WANDB_DISABLE_GIT'] = 'True'
         run = wandb.init(project='simulink_gym',
-                         group='simulink_cartpole_env',
+                         group='simulink_cartpole_env' if not benchmark else 'gym_cartpole_env',
                          job_type='examples',
                          tags=['PPO'],
                          sync_tensorboard=True,
@@ -67,7 +68,11 @@ def main():
         callback = None
 
     # Create training environment:
-    env = CartPoleSimulink(stop_time=20)
+    if not benchmark:
+        env = CartPoleSimulink()
+    else:
+        import gym
+        env = gym.make("CartPole-v1")
 
     # Create learning agent:
     agent = PPO("MlpPolicy",
@@ -103,6 +108,8 @@ def define_parser():
                         help='Factor for trade-off of bias vs variance for Generalized Advantage Estimator')
     parser.add_argument('-b', '--batch_size', metavar='batch_size', type=int, default=64,
                         help='Minibatch size for gradient update')
+    parser.add_argument('-B', '--benchmark', action='store_true',
+                        help='Flag for training in Gym implementation CartPole-v1')
     parser.add_argument('-d', '--log_dir', metavar='log_dir', type=str, default='./logs',
                         help='Path for logs and optional saved policy')
     parser.add_argument('-e', '--num_epochs', metavar='num_epochs', type=int, default=10,

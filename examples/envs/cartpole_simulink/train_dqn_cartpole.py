@@ -2,15 +2,15 @@ import os
 import argparse
 import string
 import random
-from envs import CartPoleSimulink
+from cartpole_simulink import CartPoleSimulink
 from stable_baselines3 import DQN
 from pathlib import Path
 from datetime import datetime
 
 def main():
-    """Training the DQN agent.
+    """Training a DQN agent on the cartpole environment.
 
-    Run 'python train_dqn_agent.py -h' for function documentation.
+    Run 'python train_dqn_cartpole.py -h' for function documentation.
     """
     # Parameters:
     parser = define_parser()
@@ -125,7 +125,7 @@ def define_parser():
     parser.add_argument('-b', '--batch_size', metavar='batch_size', type=int, default=32,
                         help='Minibatch size for gradient update')
     parser.add_argument('-B', '--benchmark', action='store_true',
-                        help='Flag for training in gym implementation CartPole-v1')
+                        help='Flag for training in Gym implementation CartPole-v1')
     parser.add_argument('-d', '--log_dir', metavar='log_dir', type=str, default='./logs',
                         help='Path for logs and optional saved policy')
     parser.add_argument('-e', '--epsilon_0', metavar='epsilon_0', type=float, default=1.0,
