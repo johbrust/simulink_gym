@@ -8,6 +8,8 @@ command:
   - ${args_no_boolean_flags}
 method: grid
 parameters:
+  wandb:
+    value: True
   benchmark:
     values:
     - True
