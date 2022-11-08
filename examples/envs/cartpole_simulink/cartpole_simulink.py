@@ -9,7 +9,7 @@ import math
 class CartPoleSimulink(SimulinkEnv):
     """Classic Cart Pole Control Environment implemented in Matlab/Simulink.
 
-    With Simulink solver settings matching the gym implementation this environment
+    With Simulink solver settings matching the Gym implementation this environment
     produces identical trajectories (up to numerical accuracy).
     
     Observation:

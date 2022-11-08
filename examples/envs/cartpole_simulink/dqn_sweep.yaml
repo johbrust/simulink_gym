@@ -1,0 +1,30 @@
+program: train_dqn_cartpole.py
+project: simulink_gym
+name: 'dqn sweep'
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - ${args_no_boolean_flags}
+method: grid
+parameters:
+  benchmark:
+    values:
+    - True
+    - False
+  batch_size:
+    values:
+    - 32
+    - 64
+    - 128
+    - 256
+  gamma:
+    values:
+    - 0.8
+    - 0.9
+    - 0.999
+  learning_rate:
+    values:
+    - 0.0001
+    - 0.001
+    - 0.01
