@@ -9,11 +9,11 @@ command:
 method: grid
 parameters:
   wandb:
-    value: True
+    value: true
   benchmark:
     values:
-    - True
-    - False
+    - true
+    - false
   batch_size:
     values:
     - 32
