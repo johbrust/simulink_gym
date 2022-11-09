@@ -36,14 +36,14 @@ class CartPoleSimulink(SimulinkEnv):
     """
 
     def __init__(self,
-                 stop_time: float = 500.0,
+                 stop_time: float = 10.0,
                  step_size: float = 0.02,
                  model_debug: bool = False
                  ):
         """Simulink implementation of the classic Cart Pole environment.
         
         Parameters:
-            stop_time: float, default 500
+            stop_time: float, default 10
                 maximum simulation duration in seconds
             step_size: float, default 0.02
                 size of simulation step in seconds
