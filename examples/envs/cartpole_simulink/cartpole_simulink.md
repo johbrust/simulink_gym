@@ -2,6 +2,8 @@
 
 This implementation of the classic cart pole environment uses the standard Simulink blocks to model the underlying differential equations of the [dynamics](https://coneural.org/florian/papers/05_cart_pole.pdf).
 
+The environment is modelled in `cartpole_simulink.slx` and wrapped in [`cartpole_simulink.py`](./cartpole_simulink.py).
+
 ## Solver
 
 Like the [Gym implementation](https://github.com/openai/gym/blob/v0.21.0/gym/envs/classic_control/cartpole.py), this model uses a fixed step-size of 0.02 s and the Euler integration method (*ode1 (Euler)* solver).
