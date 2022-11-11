@@ -27,9 +27,9 @@ pip install .
 
 Currently, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tool (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
-The package also provides an example implementation of the cart pole environment in Simulink. Use `pip install .[examples]` to install the examples as an extra. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, install the `wandb` extra. For a full installation use `pip install .[examples, wandb]`.
+The package also provides an [example implementation of the cart pole environment in Simulink](./examples/envs/cartpole_simulink/cartpole_simulink.md). Use `pip install .[examples]` to install the examples as an extra. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, install the `wandb` extra. For a full installation use `pip install .[examples, wandb]`.
 
-> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: `pip install ".[examples, wandb]"`
+> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[examples, wandb]"`
 
 ### MATLAB Engine for Python
 
