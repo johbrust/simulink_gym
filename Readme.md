@@ -1,8 +1,12 @@
-# Wrapper for using Simulink models as Gym Environments
+# Simulink Gym
 
-This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py#L8) as a base class.
+#### A wrapper for using Simulink models as Gym Environments
 
-The wrapper implements the [`step`](https://www.gymlibrary.dev/api/core/#gym.Env.step), [`reset`](https://www.gymlibrary.dev/api/core/#gym.Env.reset), and [`close`](https://www.gymlibrary.dev/api/core/#gym.Env.close) methods of the interface.
+This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
+
+This wrapper uses Gym version 0.21.0 for easy usage with established RL libraries such as [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html).
+
+> :grey_exclamation: The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, this wrapper will also be updated.
 
 Rendering is not done by this wrapper since it is environment specific.
 
