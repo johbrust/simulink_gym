@@ -20,6 +20,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+dev = ["black", "ruff"]
 wandb = ["wandb"]
 examples = ["stable-baselines3", "rich", "tqdm", "tensorboard"]
 
