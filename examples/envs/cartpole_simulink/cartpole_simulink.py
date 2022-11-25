@@ -11,7 +11,7 @@ class CartPoleSimulink(SimulinkEnv):
 
     With Simulink solver settings matching the Gym implementation this environment
     produces identical trajectories (up to numerical accuracy).
-    
+
     Observation:
         Type: Box(4)
         Num     Observation               Min                     Max
@@ -35,13 +35,14 @@ class CartPoleSimulink(SimulinkEnv):
         Reward is 1 for every step taken, including the termination step
     """
 
-    def __init__(self,
-                 stop_time: float = 10.0,
-                 step_size: float = 0.02,
-                 model_debug: bool = False
-                 ):
+    def __init__(
+        self,
+        stop_time: float = 10.0,
+        step_size: float = 0.02,
+        model_debug: bool = False,
+    ):
         """Simulink implementation of the classic Cart Pole environment.
-        
+
         Parameters:
             stop_time: float, default 10
                 maximum simulation duration in seconds
@@ -51,7 +52,9 @@ class CartPoleSimulink(SimulinkEnv):
                 Flag for setting up the model debug mode (see Readme.md for details)
         """
         super().__init__(
-            model_path=Path(__file__).parent.absolute().joinpath("cartpole_simulink.slx"),
+            model_path=Path(__file__)
+            .parent.absolute()
+            .joinpath("cartpole_simulink.slx"),
             model_debug=model_debug,
         )
 
@@ -61,36 +64,48 @@ class CartPoleSimulink(SimulinkEnv):
         # Define state and observations:
         self.max_cart_position = 2.4
         max_pole_angle_deg = 12
-        self.max_pole_angle_rad = max_pole_angle_deg*math.pi/180.0
-        self.observations = Observations([
-            Observation("pos", 
-                        -self.max_cart_position * 2.0,
-                        self.max_cart_position * 2.0,
-                        f'{self.env_name}/Integrator_position/InitialCondition'),
-            Observation("vel",
-                        -np.inf,
-                        np.inf,
-                        f'{self.env_name}/Integrator_speed/InitialCondition'),
-            Observation("theta",
-                        -self.max_pole_angle_rad * 2.0,
-                        self.max_pole_angle_rad * 2.0,
-                        f'{self.env_name}/Integrator_theta/InitialCondition'),
-            Observation("omega",
-                        -np.inf,
-                        np.inf,
-                        f'{self.env_name}/Integrator_omega/InitialCondition'),
-        ])
+        self.max_pole_angle_rad = max_pole_angle_deg * math.pi / 180.0
+        self.observations = Observations(
+            [
+                Observation(
+                    "pos",
+                    -self.max_cart_position * 2.0,
+                    self.max_cart_position * 2.0,
+                    f"{self.env_name}/Integrator_position/InitialCondition",
+                ),
+                Observation(
+                    "vel",
+                    -np.inf,
+                    np.inf,
+                    f"{self.env_name}/Integrator_speed/InitialCondition",
+                ),
+                Observation(
+                    "theta",
+                    -self.max_pole_angle_rad * 2.0,
+                    self.max_pole_angle_rad * 2.0,
+                    f"{self.env_name}/Integrator_theta/InitialCondition",
+                ),
+                Observation(
+                    "omega",
+                    -np.inf,
+                    np.inf,
+                    f"{self.env_name}/Integrator_omega/InitialCondition",
+                ),
+            ]
+        )
 
         # Get initial state from defined observations:
         self.state = self.observations.initial_state
 
         # Set simulation parameters:
-        self.set_model_parameter('StopTime', stop_time)
-        self.set_workspace_variable('step_size', step_size)
+        self.set_model_parameter("StopTime", stop_time)
+        self.set_workspace_variable("step_size", step_size)
 
     def reset(self):
         # Resample initial state:
-        self.observations.initial_state = np.random.uniform(low=-0.05, high=0.05, size=(4,))
+        self.observations.initial_state = np.random.uniform(
+            low=-0.05, high=0.05, size=(4,)
+        )
 
         # Call common reset:
         super()._reset()
@@ -102,7 +117,7 @@ class CartPoleSimulink(SimulinkEnv):
         """Method for stepping the simulation."""
 
         action = int(action)
-        
+
         state, simulation_time, terminated, truncated = self.sim_step(action)
 
         # Check all termination conditions:
@@ -121,5 +136,5 @@ class CartPoleSimulink(SimulinkEnv):
         reward = 1
 
         info = {"simulation time [s]": simulation_time}
-        
+
         return state, reward, done, info

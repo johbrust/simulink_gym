@@ -14,10 +14,10 @@ class Observation:
         low: float,
         high: float,
         initial_value_path: str,
-        initial_value: Union[int, float] = None
+        initial_value: Union[int, float] = None,
     ):
         """Class representing environment observations.
-        
+
         Parameters:
             name: string
                 name of the observation
@@ -28,10 +28,11 @@ class Observation:
                 higher boundary of the observation value, can also be numpy.inf, used to
                 define the observation space
             initial_value_path: string
-                path of the block parameter for setting the initial value (see BlockParam.parameter_path)
+                path of the block parameter for setting the initial value (see
+                BlockParam.parameter_path)
             initial_value: int or float, default: None
-                initial value of the observation (see BlockParam.value), the value will be sampled
-                from the observation space if None
+                initial value of the observation (see BlockParam.value), the value
+                will be sampled from the observation space if None
         """
         self.name = name
         self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
@@ -50,7 +51,10 @@ class Observation:
         value = np.array(value, ndmin=1, dtype=np.float32)
         if not self.space.contains(value):
             raise ValueError(
-                f"Observation {self.name}: Initial value {value} not inside space limits ([{self.space.low}, {self.space.high}]). {self.space.shape}, {value.shape}"
+                f"Observation {self.name}: "
+                f"Initial value {value} not inside space limits "
+                f"([{self.space.low}, {self.space.high}]). "
+                f"{self.space.shape}, {value.shape}"
             )
 
     @property
@@ -61,7 +65,7 @@ class Observation:
     @initial_value.setter
     def initial_value(self, value):
         """Set method for the initial value"""
-        logger.debug(f'Setting {self.name} to {value}')
+        logger.debug(f"Setting {self.name} to {value}")
         self._check_initial_value(np.array(value, ndmin=1, dtype=np.float32))
         self.block_param.value = value
 
@@ -72,17 +76,23 @@ class Observation:
 
 class Observations:
     """Class representing multiple environment observations as a list."""
-    
+
     def __init__(self, observations: List[Observation]):
         """Class representing multiple environment observations as a list.
-        
+
         Parameters:
             observations: list of observations
         """
         self._observations = observations
         # Create combined observation space from single observations:
-        lows = np.array([observation.space.low[0] for observation in self._observations], dtype=np.float32)
-        highs = np.array([observation.space.high[0] for observation in self._observations], dtype=np.float32)
+        lows = np.array(
+            [observation.space.low[0] for observation in self._observations],
+            dtype=np.float32,
+        )
+        highs = np.array(
+            [observation.space.high[0] for observation in self._observations],
+            dtype=np.float32,
+        )
         self.space = Box(low=lows, high=highs)
 
     def __getitem__(self, index: int):
@@ -118,4 +128,7 @@ class Observations:
             for index, observation in enumerate(self._observations):
                 observation.initial_value = values[index]
         else:
-            raise ValueError(f"Shape of values ({values.shape}) not equal to shape of observations ({self.space.shape})")
+            raise ValueError(
+                f"Shape of values ({values.shape}) not equal to "
+                f"shape of observations ({self.space.shape})"
+            )
