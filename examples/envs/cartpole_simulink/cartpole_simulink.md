@@ -1,6 +1,6 @@
 # Simulink Implementation of the Cart Pole Environment
 
-This implementation of the classic cart pole environment uses the standard Simulink blocks to model the underlying differential equations of the [dynamics](https://coneural.org/florian/papers/05_cart_pole.pdf).
+Implementation of the classic cart pole environment using standard Simulink blocks to model the underlying differential equations of the [dynamics](https://coneural.org/florian/papers/05_cart_pole.pdf).
 
 The environment is modelled in `cartpole_simulink.slx` and wrapped in [`cartpole_simulink.py`](./cartpole_simulink.py).
 
@@ -10,13 +10,13 @@ Like the [Gym implementation](https://github.com/openai/gym/blob/v0.21.0/gym/env
 
 ## Action and Observation Space
 
-Like the Gym implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both direction with a force of 10 N.
+Like the Gym implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
 
-The observation space consists of the cart's position and velocity as well as the pole's angle and the rotational velocity.
+The observation space consists of the cart's position and velocity as well as the pole's angle and its rotational velocity.
 
 ## Model parameters
 
-The dynamics of the system are defined by the physical properties of the cart and pole. These parameters are defined in the [model workspace](https://www.mathworks.com/help/simulink/ug/using-model-workspaces.html). The step size of the solver is also setup as a workspace variable. The following table lists all workspace variables end their default value. In the case of the initial cart position and pole angle the default values will be overwritten by the Simulink Gym wrapper.
+The dynamics of the system are defined by the physical properties of the cart and pole. These parameters are defined in the [model workspace](https://www.mathworks.com/help/simulink/ug/using-model-workspaces.html). The step size of the solver is also setup as a workspace variable. The following table lists all workspace variables and their default value. In the case of the initial cart position and pole angle the default values will be overwritten by the Simulink Gym wrapper.
 
 | Property                                  | Variable Name | Default Value             | Unit |
 | ----------------------------------------- | ------------- | ------------------------- | ---- |
@@ -34,4 +34,4 @@ Check out the [notebook](./cartpole_simulink.ipynb) to play around with the envi
 
 ## Training RL Agents
 
-Also included in this directory are two example scripts for training a DQN ([`train_dqn_cartpole.py`](./train_dqn_cartpole.py)) and a PPO ([`train_ppo_cartpole.py`](./train_ppo_cartpole.py)) agent on the cart pole environment implemented in Simulink. The scripts use [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/) for the RL algorithms and, optionally, [Weights & Biases](https://wandb.ai) for experiment tracking. For additional information on the usage of the example scripts just call them with the `-h` flag.
+Also included in this directory are two example scripts for training a DQN ([`train_dqn_cartpole.py`](./train_dqn_cartpole.py)) and a PPO ([`train_ppo_cartpole.py`](./train_ppo_cartpole.py)) agent on the cart pole environment implemented in Simulink. The scripts use [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/) for the RL algorithms and, optionally, [Weights & Biases](https://wandb.ai) for experiment tracking. For additional information on the usage of the example scripts just call them with the `-h` flag (`python train_<algorithm>_cartpole.py -h`).
