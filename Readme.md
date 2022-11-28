@@ -4,7 +4,7 @@ A wrapper for using Simulink models as Gym environments
 
 ---
 
-This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a [`simulink_gym.SimulinkEnv`](./simulink_gym/environment.py#L=13) subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
+This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a [`simulink_gym.SimulinkEnv`](./simulink_gym/environment.py#L13) subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
 
 This wrapper uses Gym version 0.21.0 for easy usage with established RL libraries such as [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html) or [rllib](https://www.ray.io/rllib).
 
@@ -20,11 +20,11 @@ The TCP/IP communication is established via respective Simulink blocks and match
 
 The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
 
-While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L=8) and [`Observations`](./simulink_gym/observations.py#L=77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=64). Further information about the definition of the observation space will be given [below](#preparing-the-environment-file).
+While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L8) and [`Observations`](./simulink_gym/observations.py#L77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L64). Further information about the definition of the observation space will be given [below](#preparing-the-environment-file).
 
-The provided [`_reset()`](./simulink_gym/environment.py#L=123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=104) for an example usage.
+The provided [`_reset()`](./simulink_gym/environment.py#L123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L104) for an example usage.
 
-The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L=160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=121)).
+The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L121)).
 
 ## Setup
 
@@ -75,7 +75,7 @@ Shipped with this package comes a [custom Simulink block library](https://de.mat
 
 ## How to Wrap a Simulink Model
 
-In order to use a Simulink model with this wrapper the model has to be prepared accordingly. This includes preparing the Simulink model file (`.slx` file) to be wrapped and writing a wrapper class for the model with [`SimulinkEnv`](./simulink_gym/environment.py#L=13) as its base class.
+In order to use a Simulink model with this wrapper the model has to be prepared accordingly. This includes preparing the Simulink model file (`.slx` file) to be wrapped and writing a wrapper class for the model with [`SimulinkEnv`](./simulink_gym/environment.py#L13) as its base class.
 
 ### Prepare the Simulink Model File
 
