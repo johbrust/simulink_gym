@@ -39,7 +39,9 @@ The output block also provides a mask to set all necessary parameters:
 
 ## Setup
 
-For having the block library available as *Simulink Gym* in the Simulink Library Browser simply add the [`simulink_block_lib` directory](./) to the MATLAB path. 
+When simulating a Simulink model through the Python interface provided by this wrapper the block library is added automatically to the path of the MATLAB session running in the background.
+
+To make it also available in the Simulink Library Browser as *Simulink Gym* simply add the [`simulink_block_lib` directory](./) to the MATLAB path.
 
 ## Usage
 

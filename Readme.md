@@ -4,11 +4,27 @@ A wrapper for using Simulink models as Gym environments
 
 ---
 
-This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a `simulink_gym.Environment` subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
+This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a [`simulink_gym.SimulinkEnv`](./simulink_gym/environment.py#L=13) subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
 
 This wrapper uses Gym version 0.21.0 for easy usage with established RL libraries such as [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html) or [rllib](https://www.ray.io/rllib).
 
 > :grey_exclamation: The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, this wrapper will also be updated.
+
+## How it works
+
+This section gives a broad description of the functionality under the hood. For detailed instructions on how to wrap a simulink model, see [below](#how-to-wrap-a-simulink-model).
+
+The wrapper is based on adding TCP/IP communication between a Simulink model running in a background instance of MATLAB Simulink and a Python wrapper class implementing the Gym interface.
+
+The TCP/IP communication is established via respective Simulink blocks and matching [communication sockets](./simulink_gym/utils/comm_socket.py). The Simulink blocks are provided by the [Simulink block library](./simulink_block_lib/) included in this project. The input block receives the input action, which triggers the simulation of the next time step. At the end of this time step, the output block sends the output data (i.e., the observation) back to the wrapper.
+
+The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
+
+While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L=8) and [`Observations`](./simulink_gym/observations.py#L=77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=64). Further information about the definition of the observation space will be given [below](#preparing-the-environment-file).
+
+The provided [`_reset()`](./simulink_gym/environment.py#L=123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=104) for an example usage.
+
+The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L=160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L=121)).
 
 ## Setup
 
@@ -57,9 +73,11 @@ In the future, a PyPI package of the MATLAB engine will be available which will 
 
 Shipped with this package comes a [custom Simulink block library](https://de.mathworks.com/help/simulink/libraries.html) for setting up the interface on the model side. Checkout the [respective Readme](./simulink_block_lib/Readme.md) for setup and usage instructions. 
 
-## Preparing the Simulink Model
+## How to Wrap a Simulink Model
 
-In order to use a Simulink model with this wrapper the model has to be prepared.
+In order to use a Simulink model with this wrapper the model has to be prepared accordingly. This includes preparing the Simulink model file (`.slx` file) to be wrapped and writing a wrapper class for the model with [`SimulinkEnv`](./simulink_gym/environment.py#L=13) as its base class.
+
+### Prepare the Simulink Model File
 
 How this can be done will be described here soon!
 
@@ -74,21 +92,18 @@ __To Do__:
 - Link to Matlab docs in code where respective Matlab functions are interfaced
 - Describe `model_debug` flag
 
-### Communication Interface
-
 Special blocks in a custom block library were prepared for the communication with the Simulink model. They will be described here soon!
 
 __To Do__:
 
 - simulation stepping is controlled by sending data to the simulation
-- explain [addition of the simulink block library to the library browser](https://de.mathworks.com/help/simulink/ug/adding-libraries-to-the-library-browser.html)
 - Block sample time?
 - Block parameters?
 - Byte order: Intel x86 is Little Endian, therefore the `TCP/IP Send` block is configured for Little Endian, the `TCP/IP Receive` block receives integer values and, therefore, does not need byte order configuration #TBD: this has to be changed once not only integers are send to the model
 - Explain setup of the TCP/IP blocks (In and Out)
   - It is necessary to set the number of input signals. This is not done automatically because it is not unambiguous.
 
-## Preparing the Environment File
+### Preparing the Environment File
 
 How to describe the Simulink environment in Python will be described here soon!
 
