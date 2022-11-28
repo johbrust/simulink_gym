@@ -20,12 +20,6 @@ The TCP/IP communication is established via respective Simulink blocks and match
 
 The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
 
-While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L8) and [`Observations`](./simulink_gym/observations.py#L77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L64). Further information about the definition of the observation space will be given [below](#preparing-the-environment-file).
-
-The provided [`_reset()`](./simulink_gym/environment.py#L123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L104) for an example usage.
-
-The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L121)).
-
 ## Setup
 
 Installing this package is currently only possible from source, but a distribution through PyPI is planned. Execute the following steps to install Simulink Gym.
@@ -45,7 +39,7 @@ pip install .
 
 Currently, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
-The package also provides an [example implementation of the cart pole environment in Simulink](./examples/envs/cartpole_simulink/cartpole_simulink.md). Use `pip install .[examples]` to install the examples as an extra. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can install the `wandb` extra. 
+The package also provides an [example implementation of the cart pole environment in Simulink](./examples/envs/cartpole_simulink/cartpole_simulink.md) (including example training scripts for DQN and PPO agents). Use `pip install .[examples]` to install the examples as an extra. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can install the `wandb` extra. 
 
 This package is using the [Black code formatter](https://black.readthedocs.io/en/stable/) and [Ruff linter](https://github.com/charliermarsh/ruff) for development. Therefore, the `dev` extra is defining these as dependencies.
 
@@ -71,7 +65,7 @@ In the future, a PyPI package of the MATLAB engine will be available which will 
 
 ### Simulink Gym Block Library
 
-Shipped with this package comes a [custom Simulink block library](https://de.mathworks.com/help/simulink/libraries.html) for setting up the interface on the model side. Checkout the [respective Readme](./simulink_block_lib/Readme.md) for setup and usage instructions. 
+Shipped with this package comes a [custom Simulink block library](https://de.mathworks.com/help/simulink/libraries.html) for setting up the interface on the model side. Checkout the [respective Readme](./simulink_block_lib/Readme.md) for more information and setup and usage instructions. 
 
 ## How to Wrap a Simulink Model
 
@@ -79,48 +73,49 @@ In order to use a Simulink model with this wrapper the model has to be prepared 
 
 ### Prepare the Simulink Model File
 
-How this can be done will be described here soon!
+For the communication with the wrapper the TCP/IP blocks provided by the [Simulink Gym block library](#simulink-gym-block-library) have to be added and setup [accordingly](./simulink_block_lib/Readme.md).
 
-__To Do__:
+Setting parameter values of the model through the wrapper can be done in two different ways, which has consequences for the model creation process. The first possibility is to directly set block parameter values through [`SimulinkEnv.set_block_parameter(...)`](./simulink_gym/environment.py#L286). The block parameters can be set to any value and changed later through the wrapper. A second way would be to define a variable in the [model workspace](https://de.mathworks.com/help/simulink/ug/using-model-workspaces.html) and set the block parameter to this variable. The workspace variable then can be changed for changing the block parameter through [`SimulinkEnv.set_workspace_variable(...)`](./simulink_gym/environment.py#L261).
 
-- [Set up the model](https://www.mathworks.com/help/simulink/slref/setmodelparameter.html)
-  - Sample time?
-  - [Solver](https://de.mathworks.com/help/simulink/gui/solver.html)?
-  - [Block execution order](https://de.mathworks.com/help/simulink/ug/controlling-and-displaying-the-sorted-order.html)
-    - add delays or integrators to control the execution order
-  - Explain Model Explorer (`CTRL + H`) as a tool for setting up, e.g., the model workspace
-- Link to Matlab docs in code where respective Matlab functions are interfaced
-- Describe `model_debug` flag
+Model workspace variables are the recommended way to make general block settings, like, e.g. step sizes, available for the wrapper.
 
-Special blocks in a custom block library were prepared for the communication with the Simulink model. They will be described here soon!
+> :grey_exclamation: For creating a model workspace variable, you can use the [Model Explorer](https://de.mathworks.com/help/simulink/slref/modelexplorer.html), which can be opened with `CTRL + H` from the Simulink model editor.
 
-__To Do__:
-
-- simulation stepping is controlled by sending data to the simulation
-- Block sample time?
-- Block parameters?
-- Byte order: Intel x86 is Little Endian, therefore the `TCP/IP Send` block is configured for Little Endian, the `TCP/IP Receive` block receives integer values and, therefore, does not need byte order configuration #TBD: this has to be changed once not only integers are send to the model
-- Explain setup of the TCP/IP blocks (In and Out)
-  - It is necessary to set the number of input signals. This is not done automatically because it is not unambiguous.
+Check [Model Debugging](#model-debugging) for information on how to debug the Simulink model during the model creation process.
 
 ### Preparing the Environment File
 
-How to describe the Simulink environment in Python will be described here soon!
+The second part of the environment definition is to create an environment class derived from the [`SimulinkEnv`](./simulink_gym/environment.py#L13) base class.
 
-- Setting the action and observation space: The action space is set as for the standard Gym environment. The observation space needs the custom `observations` parameter (TBD add link to line in code), since the observations are linked to certain blocks in the Simulink model. The order in the `observations` declaration has to match the order of the state mux in the model since it also defines the interpretation of the incoming data (which is defined by the mux). #TBD
-- Get the correct name of the block parameter not from the mask but from the documentation! E.g., the integrator block has a `Initial condition` parameter in the mask, but the parameter is set by using `InitialCondition` in the `ParamBlock`.
+This derived class has to define the action and observation space as well as the `reset(...)` and `step(...)` methods specific for the environment.
+
+#### Action and Observation Space
+
+While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L8) and [`Observations`](./simulink_gym/observations.py#L77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L64).
+
+The `Observations` object of the environment is a list-like object with the order of its `Observation` entries matching the concatenation order of the observation signals in the Simulink model (e.g., through the [mux block](https://de.mathworks.com/help/simulink/slref/mux.html)).
+
+Since observation values are reset after an episode information about the corresponding blocks have to be provided. The wrapper can access the block values through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
+
+> :grey_exclamation: Block parameter names don't always match the description in the block mask! Therefore, get the correct parameter name from the Simulink documentation and not from the mask!
+
+#### Reset and Step Methods
+
+The provided [`_reset()`](./simulink_gym/environment.py#L123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L104) for an example usage.
+
+The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L121)).
 
 ## Running the Simulink Model
 
+After everything is set up just use the defined environment like any other Gym environment. See the [notebook of the cart pole Simulink implementation](./examples/envs/cartpole_simulink/cartpole_simulink.ipynb) for an example usage.
+
+### Model Debugging
+
+For debugging the Simulink model in combination with the wrapper, the [`model_debug`](./simulink_gym/environment.py#L24) flag is provided. Set this to `True` in the `super().__init__(...)` call in your derived environment class and start your environment. This tells the wrapper to not start a thread with a MATLAB instance running the simulation in the background. Instead, you have to manually start the simulation model in the Simulink GUI once the environment object is instantiated (after executing `env = SomeDerivedSimulinkEnv(...)`). You can then access the Simulink model's internal signals through the Simulink GUI for easy debugging.
+
 ### End of Episode
 
-`truncated` and `terminated` flags (historically `done` flag)
-
-An environment returns the `done` flag, when the episode is finished. The Simulink simulation returns an empty TCP/IP message, when the simulation stopped. But this is only sent after the last simulation step (i.e., at time `t_end + 1`). Therefore, if the stepping through the simulation is done in a `while` loop, the return values of the last call of `env.step` (the step returning with `done` set to `true`) are no new values and, therefore, disposable.
-
-## Example Environments
-
-Two different implementations of the classic cart pole environment are provided under [`envs`](./simulink_gym/envs). [One implementation](./simulink_gym/envs/cartpole_simulink.md) uses the basic Simulink blocks, [the other](./simulink_gym/envs/cartpole_simscape.md) is implemented using the [Simscape](https://www.mathworks.com/products/simscape.html) toolbox family.
+An environment complying with the Gym interface returns the `done` flag when the episode is finished. The Simulink simulation returns an empty TCP/IP message after the simulation stopped (i.e., when the simulation has run for the defined duration). But this is only sent after the last simulation step (i.e., at time `t_end + 1`). Therefore, the termination of the simulation can only be detected one time step after the terminal state was already reached. Keep this in mind, when using the data from the environment, since the terminal state will be present two times! As a workaround, simply drop the last data point from the trajectory!
 
 ## Known Issues
 
