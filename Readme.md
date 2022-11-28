@@ -1,6 +1,6 @@
 # Simulink Gym
 
-#### A wrapper for using Simulink models as Gym environments
+A wrapper for using Simulink models as Gym environments
 
 ---
 
