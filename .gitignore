@@ -6,3 +6,4 @@ simulink_gym.egg-info
 *.slx.r*
 *logs*
 *wandb*
+build/*
