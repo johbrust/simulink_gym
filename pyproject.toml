@@ -30,7 +30,7 @@ examples = ["stable-baselines3", "rich", "tqdm", "tensorboard"]
 "Project Management" = "https://quire.io/w/Simulink_Gym"
 
 [tool.setuptools]
-packages = ["simulink_gym"]
+packages = ["simulink_gym", "simulink_gym.utils", "simulink_block_lib"]
 
 [tool.setuptools.dynamic]
 version = {attr = "simulink_gym.__version__"}

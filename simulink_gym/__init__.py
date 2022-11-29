@@ -2,12 +2,6 @@
 
 __version__ = "0.5.0"
 
-from gym import logger
-from gym import spaces
-from .environment import SimulinkEnv
-from .observations import Observation, Observations
-from .utils import BlockParam
-
 # Path of the simulink block library defining the interface blocks:
 from pathlib import Path
 
@@ -15,4 +9,18 @@ SIMULINK_BLOCK_LIB_PATH = (
     Path(__file__).parent.parent.absolute().joinpath("simulink_block_lib")
 )
 
-__all__ = [logger, spaces, SimulinkEnv, Observation, Observations, BlockParam]
+from gym import logger  # noqa: E402
+from gym import spaces  # noqa: E402
+from .environment import SimulinkEnv  # noqa: E402
+from .observations import Observation, Observations  # noqa: E402
+from .utils import BlockParam  # noqa: E402
+
+__all__ = [
+    logger,
+    spaces,
+    SimulinkEnv,
+    Observation,
+    Observations,
+    BlockParam,
+    SIMULINK_BLOCK_LIB_PATH,
+]

@@ -1,6 +1,6 @@
 import threading
 import socket
-from simulink_gym import logger
+from .. import logger
 import array
 import numpy as np
 import struct

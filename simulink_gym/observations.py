@@ -2,7 +2,7 @@ from gym.spaces import Box
 from typing import Union, List
 from .utils import BlockParam
 import numpy as np
-from simulink_gym import logger
+from . import logger
 
 
 class Observation:

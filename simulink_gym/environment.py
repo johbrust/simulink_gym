@@ -1,7 +1,7 @@
 import os
 import matlab.engine
 import gym
-from simulink_gym import logger, SIMULINK_BLOCK_LIB_PATH
+from . import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
 import numpy as np
 from typing import Union
