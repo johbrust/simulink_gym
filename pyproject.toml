@@ -22,7 +22,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 dev = ["black", "ruff"]
 wandb = ["wandb"]
-examples = ["stable-baselines3", "rich", "tqdm", "tensorboard"]
+examples = ["stable-baselines3", "rich", "tqdm", "tensorboard", "notebook"]
 
 [project.urls]
 "Homepage" = "https://github.com/johbrust/simulink_gym"
