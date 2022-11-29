@@ -1,6 +1,6 @@
 """Simulink Gym: Gym Interface Wrapper for Simulink Models"""
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 # Path of the simulink block library defining the interface blocks:
 from pathlib import Path
