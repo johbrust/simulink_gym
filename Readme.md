@@ -20,6 +20,8 @@ The TCP/IP communication is established via respective Simulink blocks and match
 
 The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
 
+> :grey_exclamation: Initializing an environment object takes a few seconds due to the starting of MATLAB in the background and the creation of the simulation object ([`SimulationInput` object](https://de.mathworks.com/help/simulink/slref/simulink.simulationinput-class.html)). Also, the first `reset(...)` takes substantially longer than any consecutive `reset(...)`.
+
 ## Setup
 
 Installing this package is currently only possible from source, but a distribution through PyPI is planned. Execute the following steps to install Simulink Gym.
@@ -45,7 +47,7 @@ This package is using the [Black code formatter](https://black.readthedocs.io/en
 
 For a full installation use `pip install .[dev, examples, wandb]`.
 
-> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[examples, wandb]"`
+> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[dev, examples, wandb]"`
 
 ### MATLAB Engine for Python
 
