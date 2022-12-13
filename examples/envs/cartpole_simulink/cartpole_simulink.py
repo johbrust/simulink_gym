@@ -72,28 +72,28 @@ class CartPoleSimulink(SimulinkEnv):
                     -self.max_cart_position * 2.0,
                     self.max_cart_position * 2.0,
                     f"{self.env_name}/Integrator_position/InitialCondition",
-                    self.set_block_parameter
+                    self.set_block_parameter,
                 ),
                 Observation(
                     "vel",
                     -np.inf,
                     np.inf,
                     f"{self.env_name}/Integrator_speed/InitialCondition",
-                    self.set_block_parameter
+                    self.set_block_parameter,
                 ),
                 Observation(
                     "theta",
                     -self.max_pole_angle_rad * 2.0,
                     self.max_pole_angle_rad * 2.0,
                     f"{self.env_name}/Integrator_theta/InitialCondition",
-                    self.set_block_parameter
+                    self.set_block_parameter,
                 ),
                 Observation(
                     "omega",
                     -np.inf,
                     np.inf,
                     f"{self.env_name}/Integrator_omega/InitialCondition",
-                    self.set_block_parameter
+                    self.set_block_parameter,
                 ),
             ]
         )

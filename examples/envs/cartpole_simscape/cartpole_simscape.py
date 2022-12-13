@@ -69,28 +69,18 @@ class CartPoleSimscape(SimulinkEnv):
                     -self.max_cart_position * 2.0,
                     self.max_cart_position * 2.0,
                     "x_0",
-                    self.set_workspace_variable
+                    self.set_workspace_variable,
                 ),
-                Observation(
-                    "vel",
-                    -np.inf,
-                    np.inf,
-                    "v_0",
-                    self.set_workspace_variable
-                ),
+                Observation("vel", -np.inf, np.inf, "v_0", self.set_workspace_variable),
                 Observation(
                     "theta",
                     -self.max_pole_angle_rad * 2.0,
                     self.max_pole_angle_rad * 2.0,
                     "theta_0",
-                    self.set_workspace_variable
+                    self.set_workspace_variable,
                 ),
                 Observation(
-                    "omega",
-                    -np.inf,
-                    np.inf,
-                    "omega_0",
-                    self.set_workspace_variable
+                    "omega", -np.inf, np.inf, "omega_0", self.set_workspace_variable
                 ),
             ]
         )
