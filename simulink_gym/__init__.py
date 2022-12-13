@@ -1,6 +1,6 @@
 """Simulink Gym: Gym Interface Wrapper for Simulink Models"""
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 # Path of the simulink block library defining the interface blocks:
 from pathlib import Path
@@ -13,7 +13,6 @@ from gym import logger  # noqa: E402
 from gym import spaces  # noqa: E402
 from .environment import SimulinkEnv  # noqa: E402
 from .observations import Observation, Observations  # noqa: E402
-from .utils import BlockParam  # noqa: E402
 
 __all__ = [
     logger,
@@ -21,6 +20,5 @@ __all__ = [
     SimulinkEnv,
     Observation,
     Observations,
-    BlockParam,
     SIMULINK_BLOCK_LIB_PATH,
 ]
