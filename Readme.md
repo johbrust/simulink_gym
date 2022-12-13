@@ -47,7 +47,7 @@ This package is using the [Black code formatter](https://black.readthedocs.io/en
 
 For a full installation use `pip install .[all]`.
 
-> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[dev, examples, wandb]"`
+> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[all]"`
 
 ### MATLAB Engine for Python
 
