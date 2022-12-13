@@ -41,7 +41,7 @@ pip install .
 
 Currently, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
-The package also provides an [example implementation of the cart pole environment in Simulink](./examples/envs/cartpole_simulink/cartpole_simulink.md) (including example training scripts for DQN and PPO agents). Use `pip install .[examples]` to install the examples as an extra. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can install the `wandb` extra. 
+The package also provides [example implementations using the Simulink wrapper](./examples/Readme.md) (including example training scripts for DQN and PPO agents for the [cart pole implementation in Simulink](./examples/envs/cartpole_simulink/Readme.md)). Use `pip install .[examples]` to install the extra packages required by the examples. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can install the `wandb` extra. 
 
 This package is using the [Black code formatter](https://black.readthedocs.io/en/stable/) and [Ruff linter](https://github.com/charliermarsh/ruff) for development. Therefore, the `dev` extra is defining these as dependencies.
 
@@ -93,19 +93,19 @@ This derived class has to define the action and observation space as well as the
 
 #### Action and Observation Space
 
-While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L8) and [`Observations`](./simulink_gym/observations.py#L77) classes. For an example definition of an observation space, check the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L64).
+While the action space is defined simply by, e.g., `self.action_space = gym.spaces.Discrete(2)`, the observation space definition needs additional information about the corresponding blocks or workspace variables in the Simulink model. This is due to the fact that the wrapper needs to be able to set these values, e.g., while resetting the environment. For this, the wrapper provides the [`Observation`](./simulink_gym/observations.py#L7) and [`Observations`](./simulink_gym/observations.py#L88) classes. For an example definition of an observation space, check the cart pole example implementations in [Simulink](./examples/envs/cartpole_simulink/cartpole_simulink.py#L64) and [Simscape](./examples/envs/cartpole_simscape/cartpole_simscape.py#L61) which set initial values directly through the block parameter values (Simulink implementation) or through workspace variables (Simscape implementation).
 
 The `Observations` object of the environment is a list-like object with the order of its `Observation` entries matching the concatenation order of the observation signals in the Simulink model (e.g., through the [mux block](https://de.mathworks.com/help/simulink/slref/mux.html)).
 
-Since observation values are reset after an episode information about the corresponding blocks have to be provided. The wrapper can access the block values through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
+Since observation values are reset after an episode information about the corresponding blocks or workspace variable have to be provided. For block parameters, the wrapper can access these through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
 
 > :grey_exclamation: Block parameter names don't always match the description in the block mask! Therefore, get the correct parameter name from the Simulink documentation and not from the mask!
 
 #### Reset and Step Methods
 
-The provided [`_reset()`](./simulink_gym/environment.py#L123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L104) for an example usage.
+The provided [`_reset()`](./simulink_gym/environment.py#L123) method is to be called in the `reset()` method of the derived environment class. This takes care of resetting the Simulink simulation. The derived class therefore only has to implement environment specific reset behavior like resampling of the initial state or only parts of it. Again, see the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L108) for an example usage.
 
-The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L121)).
+The basic stepping functionality is provided by the wrapper's [`sim_step(...)` method](./simulink_gym/environment.py#L160) which should be called in the `step(...)` method of the derived environment definition class (see, e.g., `step(...)` method of the [cart pole example](./examples/envs/cartpole_simulink/cartpole_simulink.py#L120)).
 
 ## Running the Simulink Model
 
