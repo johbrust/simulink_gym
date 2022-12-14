@@ -1,4 +1,4 @@
-from simulink_gym import SimulinkEnv, Observation, Observations, BlockParam
+from simulink_gym import SimulinkEnv, Observation, Observations
 from gym.spaces import Box
 from pathlib import Path
 import numpy as np
@@ -13,12 +13,8 @@ class SimpleReacherSimulink(SimulinkEnv):
             .joinpath("simple_reacher_simulink.slx"),
         )
 
-        self.set_block_parameter(
-            BlockParam(f"{self.env_name}/length_1/Value", length_1)
-        )
-        self.set_block_parameter(
-            BlockParam(f"{self.env_name}/length_2/Value", length_2)
-        )
+        self.set_block_parameter(f"{self.env_name}/length_1/Value", length_1)
+        self.set_block_parameter(f"{self.env_name}/length_2/Value", length_2)
 
         # Define action space:
         self.action_space = Box(low=0.0, high=math.pi, shape=(2,), dtype=np.float32)
@@ -31,12 +27,14 @@ class SimpleReacherSimulink(SimulinkEnv):
                     -np.inf,
                     np.inf,
                     f"{self.env_name}/IC_1/Value",
+                    self.set_block_parameter,
                 ),
                 Observation(
                     "y",
                     -np.inf,
                     np.inf,
                     f"{self.env_name}/IC_2/Value",
+                    self.set_block_parameter,
                 ),
             ]
         )
