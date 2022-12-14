@@ -113,7 +113,9 @@ After everything is set up just use the defined environment like any other Gym e
 
 ### Model Debugging
 
-For debugging the Simulink model in combination with the wrapper, the [`model_debug`](./simulink_gym/environment.py#L24) flag is provided. Set this to `True` in the `super().__init__(...)` call in your derived environment class and start your environment. This tells the wrapper to not start a thread with a MATLAB instance running the simulation in the background. Instead, you have to manually start the simulation model in the Simulink GUI once the environment object is instantiated (after executing `env = SomeDerivedSimulinkEnv(...)`). You can then access the Simulink model's internal signals through the Simulink GUI for easy debugging.
+For debugging the Simulink model in combination with the wrapper, the [`model_debug`](./simulink_gym/environment.py#L24) flag is provided. Set this to `True` in the `super().__init__(...)` call in your derived environment class and start your environment. This tells the wrapper to not start a thread with a MATLAB instance running the simulation in the background. Instead, you have to manually start the simulation model in the Simulink GUI once the environment object is instantiated and resetting initially (executing `state = env.reset()` will cause the program to wait for the connection). You can then access the Simulink model's internal signals through the Simulink GUI for easy debugging.
+
+The best way to stop the simulation is by executing `env.stop_simulation()`.
 
 ### End of Episode
 
