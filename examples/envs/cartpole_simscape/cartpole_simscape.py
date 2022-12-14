@@ -6,11 +6,8 @@ import math
 
 
 # Define example environment:
-class CartPoleSimulink(SimulinkEnv):
-    """Classic Cart Pole Control Environment implemented in Matlab/Simulink.
-
-    With Simulink solver settings matching the Gym implementation this environment
-    produces identical trajectories (up to numerical accuracy).
+class CartPoleSimscape(SimulinkEnv):
+    """Classic Cart Pole Control Environment implemented in Matlab/Simulink/Simscape.
 
     Observation:
         Type: Box(4)
@@ -41,7 +38,7 @@ class CartPoleSimulink(SimulinkEnv):
         step_size: float = 0.02,
         model_debug: bool = False,
     ):
-        """Simulink implementation of the classic Cart Pole environment.
+        """Simscape implementation of the classic Cart Pole environment.
 
         Parameters:
             stop_time: float, default 10
@@ -54,7 +51,7 @@ class CartPoleSimulink(SimulinkEnv):
         super().__init__(
             model_path=Path(__file__)
             .parent.absolute()
-            .joinpath("cartpole_simulink.slx"),
+            .joinpath("cartpole_simscape.slx"),
             model_debug=model_debug,
         )
 
@@ -71,29 +68,19 @@ class CartPoleSimulink(SimulinkEnv):
                     "pos",
                     -self.max_cart_position * 2.0,
                     self.max_cart_position * 2.0,
-                    f"{self.env_name}/Integrator_position/InitialCondition",
-                    self.set_block_parameter,
+                    "x_0",
+                    self.set_workspace_variable,
                 ),
-                Observation(
-                    "vel",
-                    -np.inf,
-                    np.inf,
-                    f"{self.env_name}/Integrator_speed/InitialCondition",
-                    self.set_block_parameter,
-                ),
+                Observation("vel", -np.inf, np.inf, "v_0", self.set_workspace_variable),
                 Observation(
                     "theta",
                     -self.max_pole_angle_rad * 2.0,
                     self.max_pole_angle_rad * 2.0,
-                    f"{self.env_name}/Integrator_theta/InitialCondition",
-                    self.set_block_parameter,
+                    "theta_0",
+                    self.set_workspace_variable,
                 ),
                 Observation(
-                    "omega",
-                    -np.inf,
-                    np.inf,
-                    f"{self.env_name}/Integrator_omega/InitialCondition",
-                    self.set_block_parameter,
+                    "omega", -np.inf, np.inf, "omega_0", self.set_workspace_variable
                 ),
             ]
         )

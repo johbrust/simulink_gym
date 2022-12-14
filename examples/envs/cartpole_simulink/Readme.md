@@ -12,7 +12,7 @@ Like the [Gym implementation](https://github.com/openai/gym/blob/v0.21.0/gym/env
 
 Like the Gym implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
 
-The observation space consists of the cart's position and velocity as well as the pole's angle and its rotational velocity.
+The observation space consists of the cart's position and velocity as well as the pole's angle and its angular velocity.
 
 ## Model parameters
 

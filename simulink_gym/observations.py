@@ -1,6 +1,5 @@
 from gym.spaces import Box
-from typing import Union, List
-from .utils import BlockParam
+from typing import Any, Callable, Union, List
 import numpy as np
 from . import logger
 
@@ -13,10 +12,18 @@ class Observation:
         name: str,
         low: float,
         high: float,
-        initial_value_path: str,
+        parameter: str,
+        value_setter: Callable[[str, Union[int, float]], Any],
         initial_value: Union[int, float] = None,
     ):
         """Class representing environment observations.
+
+        Block parameter values can be either defined directly in the block, if the value
+        path is available programmatically (check MATLAB/Simulink documentation for that
+        matter), or indirectly by using a workspace variable. For this, define a
+        variable in the model workspace and set the block parameter value to this
+        variable. The value can then be set programmatically by setting the workspace
+        variable. Depending on this, set the value_setter method accordingly.
 
         Parameters:
             name: string
@@ -27,9 +34,13 @@ class Observation:
             high: float
                 higher boundary of the observation value, can also be numpy.inf, used to
                 define the observation space
-            initial_value_path: string
-                path of the block parameter for setting the initial value (see
-                BlockParam.parameter_path)
+            parameter: string
+                path of the block parameter for setting the initial value (if setting
+                the block value directly) or name of the workspace variable used for the
+                block parameter
+            value_setter: Callable
+                method for setting the initial value, either
+                SimulinkEnv.set_block_parameter or SimulinkEnv.set_workspace_variable
             initial_value: int or float, default: None
                 initial value of the observation (see BlockParam.value), the value
                 will be sampled from the observation space if None
@@ -37,15 +48,11 @@ class Observation:
         self.name = name
         self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
 
-        # Sample initial value if not defined:
-        if initial_value is None:
-            initial_value = self.space.sample()[0]
-        else:
-            initial_value = initial_value
-
-        self._check_initial_value(initial_value)
-
-        self.block_param = BlockParam(initial_value_path, initial_value)
+        self.initial_value = (
+            initial_value if initial_value is not None else self.space.sample()[0]
+        )
+        self.parameter = parameter
+        self._value_setter = value_setter
 
     def _check_initial_value(self, value):
         value = np.array(value, ndmin=1, dtype=np.float32)
@@ -60,18 +67,22 @@ class Observation:
     @property
     def initial_value(self):
         """Initial value of the observation."""
-        return self.block_param.value
+        return self._initial_value
 
     @initial_value.setter
     def initial_value(self, value):
         """Set method for the initial value"""
         logger.debug(f"Setting {self.name} to {value}")
         self._check_initial_value(np.array(value, ndmin=1, dtype=np.float32))
-        self.block_param.value = value
+        self._initial_value = value
 
     def resample_initial_value(self):
         """Resample the initial value according to observation space."""
-        self.block_param.value = self.space.sample()[0]
+        self._initial_value = self.space.sample()[0]
+
+    def reset_value(self):
+        """Set the initial value in the simulation object."""
+        self._value_setter(self.parameter, self.initial_value)
 
 
 class Observations:
@@ -132,3 +143,8 @@ class Observations:
                 f"Shape of values ({values.shape}) not equal to "
                 f"shape of observations ({self.space.shape})"
             )
+
+    def reset_values(self):
+        """Reset all observation values to their initial values."""
+        for obs in self._observations:
+            obs.reset_value()

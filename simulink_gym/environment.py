@@ -7,7 +7,7 @@ import numpy as np
 from typing import Union
 from pathlib import Path
 from .observations import Observations
-from .utils import CommSocket, BlockParam
+from .utils import CommSocket
 
 
 class SimulinkEnv(gym.Env):
@@ -80,7 +80,7 @@ class SimulinkEnv(gym.Env):
                     )
                     # Create simulation as SimulationInput object:
                     logger.info(
-                        f"Creating simulation input object for model " 
+                        f"Creating simulation input object for model "
                         f"{self.env_name}.slx"
                     )
                     self.sim_input = self.matlab_engine.Simulink.SimulationInput(
@@ -280,10 +280,10 @@ class SimulinkEnv(gym.Env):
         # Functionality only available if not in debug mode:
         if not self.model_debug:
             self.sim_input = self.matlab_engine.setVariable(
-                self.sim_input, var, value, "Workspace", self.env_name
+                self.sim_input, var, float(value), "Workspace", self.env_name
             )
 
-    def set_block_parameter(self, parameter: BlockParam):
+    def set_block_parameter(self, path: str, value: Union[int, float]):
         """Set parameter values of Simulink blocks.
 
         See:
@@ -293,14 +293,16 @@ class SimulinkEnv(gym.Env):
         executed often!
 
         Parameters:
-            parameter: BlockParam
-                parameter defined by a BlockParam object (defines path and value)
+            path: string
+                path of the block parameter
+            value: int or float
+                value of the workspace variable
         """
         # Functionality only available if not in debug mode:
         if not self.model_debug:
-            block_path = str(Path(parameter.parameter_path).parent)
-            param = str(Path(parameter.parameter_path).stem)
-            value = str(parameter.value)
+            block_path = str(Path(path).parent)
+            param = str(Path(path).stem)
+            value = str(value)
             self.sim_input = self.matlab_engine.setBlockParameter(
                 self.sim_input, block_path, param, value
             )
@@ -335,11 +337,9 @@ class SimulinkEnv(gym.Env):
             initial state according to observation space
         """
         try:
-            # Functionality only available if not in debug mode and if the respective
-            # state variable/observation should be reset:
+            # Functionality only available if not in debug mode:
             if not self.model_debug:
-                for obs in self.observations:
-                    self.set_block_parameter(obs.block_param)
+                self.observations.reset_values()
         except AttributeError:
             raise AttributeError("Environment observations not defined")
 
