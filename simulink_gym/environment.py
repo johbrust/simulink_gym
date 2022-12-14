@@ -126,7 +126,7 @@ class SimulinkEnv(gym.Env):
         This method stops a running simulation, closes and reopens the communication
         sockets and restarts the simulation.
         """
-        if self.simulation_thread.is_alive():
+        if self.simulation_thread is not None and self.simulation_thread.is_alive():
             self.stop_simulation()
 
         self.close_sockets()
@@ -179,7 +179,7 @@ class SimulinkEnv(gym.Env):
             terminated: bool
                 indicator for reaching a terminal state
         """
-        if self.simulation_thread.is_alive():
+        if self.model_debug or self.simulation_thread.is_alive():
             # Check validity of action:
             if not self.action_space.contains(action):
                 raise ValueError(f"Action {action} not in action space.")
@@ -245,13 +245,11 @@ class SimulinkEnv(gym.Env):
                 flag for stopping the simulation
         """
         # Check validity of set_values and for running simulation:
-        if (
-            set_values.shape == self.action_space.shape
-            and self.simulation_thread.is_alive()
-        ):
-            self.send_socket.send_data(set_values, stop)
-        elif not self.simulation_thread.is_alive():
-            logger.info("No simulation running currently. No data can be sent.")
+        if set_values.shape == self.action_space.shape:
+            if self.model_debug or self.simulation_thread.is_alive():
+                self.send_socket.send_data(set_values, stop)
+            else:
+                logger.info("No simulation running currently. No data can be sent.")
         else:
             raise Exception(
                 f"Wrong shape of data. The shape is {set_values.shape}, "
@@ -352,7 +350,7 @@ class SimulinkEnv(gym.Env):
 
     def stop_simulation(self):
         """Method for stopping the simulation."""
-        if self.simulation_thread.is_alive():
+        if self.model_debug or self.simulation_thread.is_alive():
             try:
                 self._send_stop_signal()
             except Exception:
