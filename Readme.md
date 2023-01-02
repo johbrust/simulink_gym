@@ -8,7 +8,7 @@ This wrapper establishes the [Gym environment interface](https://www.gymlibrary.
 
 This wrapper uses Gym version 0.21.0 for easy usage with established RL libraries such as [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html) or [rllib](https://www.ray.io/rllib).
 
-> :grey_exclamation: The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, this wrapper will also be updated.
+> :grey_exclamation: The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, [this wrapper will also be updated](https://github.com/johbrust/simulink_gym/issues/11).
 
 ## How it works
 
@@ -16,15 +16,15 @@ This section gives a broad description of the functionality under the hood. For 
 
 The wrapper is based on adding TCP/IP communication between a Simulink model running in a background instance of MATLAB Simulink and a Python wrapper class implementing the Gym interface.
 
-The TCP/IP communication is established via respective Simulink blocks and matching [communication sockets](./simulink_gym/utils/comm_socket.py). The Simulink blocks are provided by the [Simulink block library](./simulink_block_lib/) included in this project. The input block receives the input action, which triggers the simulation of the next time step. At the end of this time step, the output block sends the output data (i.e., the observation) back to the wrapper.
+The TCP/IP communication is established via respective Simulink blocks and matching [communication sockets](./simulink_gym/utils/comm_socket.py). The Simulink blocks are provided by the [Simulink block library](./simulink_block_lib/) included in this project. The input block receives the input action, which triggers the simulation of the next time step. At the end of this time step, the output block sends the output data (i.e., the observation) back to the wrapper. Check out the [Readme](./simulink_block_lib/Readme.md) of the Simulink block library for more information.
 
-The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
+The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual Gym environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
 
 > :grey_exclamation: Initializing an environment object takes a few seconds due to the starting of MATLAB in the background and the creation of the simulation object ([`SimulationInput` object](https://de.mathworks.com/help/simulink/slref/simulink.simulationinput-class.html)). Also, the first `reset(...)` takes substantially longer than any consecutive `reset(...)`.
 
 ## Setup
 
-Installing this package is currently only possible from source, but a distribution through PyPI is planned. Execute the following steps to install Simulink Gym.
+Installing this package is currently only possible from source, but [a distribution through PyPI is planned](https://github.com/johbrust/simulink_gym/issues/12). Execute the following steps to install Simulink Gym.
 
 ```bash
 # Clone repository with HTTPS ...
@@ -67,7 +67,7 @@ In the future, a PyPI package of the MATLAB engine will be available which will 
 
 ### Simulink Gym Block Library
 
-Shipped with this package comes a [custom Simulink block library](https://de.mathworks.com/help/simulink/libraries.html) for setting up the interface on the model side. Checkout the [respective Readme](./simulink_block_lib/Readme.md) for more information and setup and usage instructions. 
+Shipped with this package comes a [custom Simulink block library](https://de.mathworks.com/help/simulink/libraries.html) for setting up the interface on the model side. Checkout the [respective Readme](./simulink_block_lib/Readme.md) for more information about setup and usage. 
 
 ## How to Wrap a Simulink Model
 
@@ -79,7 +79,7 @@ For the communication with the wrapper the TCP/IP blocks provided by the [Simuli
 
 Setting parameter values of the model through the wrapper can be done in two different ways, which has consequences for the model creation process. The first possibility is to directly set block parameter values through [`SimulinkEnv.set_block_parameter(...)`](./simulink_gym/environment.py#L286). The block parameters can be set to any value and changed later through the wrapper. A second way would be to define a variable in the [model workspace](https://de.mathworks.com/help/simulink/ug/using-model-workspaces.html) and set the block parameter to this variable. The workspace variable then can be changed for changing the block parameter through [`SimulinkEnv.set_workspace_variable(...)`](./simulink_gym/environment.py#L261).
 
-Model workspace variables are the recommended way to make general block settings, like, e.g. step sizes, available for the wrapper.
+Model workspace variables are the recommended way to make general block settings, like step sizes, available for the wrapper.
 
 > :grey_exclamation: For creating a model workspace variable, you can use the [Model Explorer](https://de.mathworks.com/help/simulink/slref/modelexplorer.html), which can be opened with `CTRL + H` from the Simulink model editor.
 
@@ -97,7 +97,7 @@ While the action space is defined simply by, e.g., `self.action_space = gym.spac
 
 The `Observations` object of the environment is a list-like object with the order of its `Observation` entries matching the concatenation order of the observation signals in the Simulink model (e.g., through the [mux block](https://de.mathworks.com/help/simulink/slref/mux.html)).
 
-Since observation values are reset after an episode information about the corresponding blocks or workspace variable have to be provided. For block parameters, the wrapper can access these through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
+Since observation values are reset after an episode, information about the corresponding blocks or workspace variable have to be provided. For block parameters, the wrapper can access these through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
 
 > :grey_exclamation: Block parameter names don't always match the description in the block mask! Therefore, get the correct parameter name from the Simulink documentation and not from the mask!
 
