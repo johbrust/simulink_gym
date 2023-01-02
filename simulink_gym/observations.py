@@ -71,7 +71,7 @@ class Observation:
     def initial_value(self, value):
         """Set method for the initial value"""
         logger.debug(f"Setting {self.name} to {value}")
-        self._check_initial_value(np.array(value, ndmin=1, dtype=np.float32))
+        self._check_initial_value(value)
         self._initial_value = value
 
     def resample_initial_value(self):
