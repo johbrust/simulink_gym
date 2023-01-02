@@ -22,7 +22,7 @@ class CommSocket:
             name: string, default: None
                 optional name of the socket for debugging purposes
         """
-        self._debug_prefix = f"{name}: " if name is not None else ""
+        self._debug_prefix = f"{name}: " if name else ""
         self.port = port
         self.connection = None
         self.address = None
@@ -107,7 +107,7 @@ class CommSocket:
             self.socket_thread.join()
             # This either times out, which causes a TimeoutError, or results in a
             # connection, which can be closed now:
-        if self.connection is not None:
+        if self.connection:
             try:
                 self.connection.shutdown(socket.SHUT_RDWR)
                 self.connection.close()

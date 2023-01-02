@@ -48,9 +48,7 @@ class Observation:
         self.name = name
         self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
 
-        self.initial_value = (
-            initial_value if initial_value is not None else self.space.sample()[0]
-        )
+        self.initial_value = initial_value if initial_value else self.space.sample()[0]
         self.parameter = parameter
         self._value_setter = value_setter
 

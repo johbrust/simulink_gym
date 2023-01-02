@@ -99,7 +99,7 @@ class SimulinkEnv(gym.Env):
         """Deletion of environment needs to also quit the Matlab engine."""
         self.close()
         # Close matlab engine:
-        if self.matlab_engine is not None:
+        if self.matlab_engine:
             self.matlab_engine.quit()
 
     @property
@@ -126,7 +126,7 @@ class SimulinkEnv(gym.Env):
         This method stops a running simulation, closes and reopens the communication
         sockets and restarts the simulation.
         """
-        if self.simulation_thread is not None and self.simulation_thread.is_alive():
+        if self.simulation_thread and self.simulation_thread.is_alive():
             self.stop_simulation()
 
         self.close_sockets()
