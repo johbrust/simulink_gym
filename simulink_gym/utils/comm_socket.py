@@ -28,7 +28,7 @@ class CommSocket:
         self.address = None
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket_thread = threading.Thread()
+        self.connect_socket_thread = threading.Thread()
 
     def _open_socket(self, timeout=300):
         """Method for opening the socket and waiting for connection.
@@ -61,10 +61,10 @@ class CommSocket:
     def open_socket(self):
         """Method creating a thread for connecting with the simulation."""
         if not self.is_connected():
-            self.socket_thread = threading.Thread(
+            self.connect_socket_thread = threading.Thread(
                 name="socket._open_socket()", target=self._open_socket
             )
-            self.socket_thread.start()
+            self.connect_socket_thread.start()
         else:
             logger.error(f"{self._debug_prefix}Socket already opened or connected")
 
@@ -103,8 +103,8 @@ class CommSocket:
 
     def close(self):
         """Method for closing the socket."""
-        if self.socket_thread.is_alive():
-            self.socket_thread.join()
+        if self.connect_socket_thread.is_alive():
+            self.connect_socket_thread.join()
             # This either times out, which causes a TimeoutError, or results in a
             # connection, which can be closed now:
         if self.connection:
@@ -129,11 +129,7 @@ class CommSocket:
 
     def is_connected(self):
         """Check for connection of the socket."""
-        return (
-            False
-            if ((self.connection is None) or self.socket_thread.is_alive())
-            else True
-        )
+        return self.connection is not None and not self.connect_socket_thread.is_alive()
 
     def wait_for_connection(self, timeout: float = None):
         """Method for waiting for connection.
@@ -142,4 +138,4 @@ class CommSocket:
             timeout: float, default: None
                 timeout for the joining of the connection thread
         """
-        self.socket_thread.join(timeout=timeout)
+        self.connect_socket_thread.join(timeout=timeout)
