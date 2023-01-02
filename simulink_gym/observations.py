@@ -53,6 +53,7 @@ class Observation:
         self._value_setter = value_setter
 
     def _check_initial_value(self, value):
+        """Check initial value of observation."""
         value = np.array(value, ndmin=1, dtype=np.float32)
         if not self.space.contains(value):
             raise ValueError(

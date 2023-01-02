@@ -224,7 +224,7 @@ class SimulinkEnv(gym.Env):
                 match the defined action space
 
         Returns:
-            state
+            state:
                 current state of the environment (according to the observation space)
             reward: float
                 reward signal from the environment for reaching current state
