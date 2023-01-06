@@ -1,8 +1,6 @@
 # Simulink Gym
 
-A wrapper for using Simulink models as Gym environments
-
----
+*A wrapper for using Simulink models as Gym environments*
 
 This wrapper establishes the [Gym environment interface](https://www.gymlibrary.dev/api/core/) for [Simulink](https://de.mathworks.com/products/simulink.html) models by deriving a [`simulink_gym.SimulinkEnv`](./simulink_gym/environment.py#L13) subclass from [`gym.Env`](https://github.com/openai/gym/blob/v0.21.0/gym/core.py#L8).
 
@@ -24,46 +22,35 @@ The wrapper provides the necessary methods to create this derived environment wi
 
 ## Setup
 
-Installing this package is currently only possible from source, but [a distribution through PyPI is planned](https://github.com/johbrust/simulink_gym/issues/12). Execute the following steps to install Simulink Gym.
+This package is controlling Simulink models in MATLAB from Python through the [MATLAB engine for Python](https://de.mathworks.com/help/matlab/matlab_external/get-started-with-matlab-engine-for-python.html), which is a Python package provided by MATLAB. Until MATLAB version `R2022b`, this Python package was not available for simple installation via `pip` from PyPI. Instead, it had to be installed manually [from source](https://de.mathworks.com/help/matlab/matlab_external/python-setup-script-to-install-matlab-engine-api.html) and, therefore, it could not be added as a dependency for automatic installation (e.g., in `requirements.txt` or `pyproject.toml`).
 
-```bash
-# Clone repository with HTTPS ...
-git clone https://github.com/johbrust/simulink_gym.git
-# ... or SSH:
-git clone git@github.com:johbrust/simulink_gym.git
+Since most MATLAB installations probably aren't updated to versions >= `R2022b` yet, the MATLAB engine for Python is not added as a dependency to the [pyproject.toml](./pyproject.toml) of this package. Instead, the setup process for **Simulink Gym** requires an extra step for the installation of the MATLAB engine for Python. Execute the following steps to install Simulink Gym.
 
-cd simulink_gym
+```shell
+# Install Simulink Gym:
+pip install git+https://github.com/johbrust/simulink_gym.git
 
-# If needed, activate some environment here!
-
-pip install .
+# The following step for installing the MATLAB engine depends on your MATLAB version.
+# MATLAB version < R2022b:
+cd <matlab root>/extern/engines/python
+sudo $(which python) setup.py install
+# MATLAB version >= R2022b:
+pip install matlabengine
 ```
 
-Currently, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which does not conform, i.a., to the versioning defined by PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
+Under Linux, `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`. The macro `$(which python)` ensures the usage of the right Python executable in case you are using (and already activated) a Python environment. The `sudo` is required since MATLAB is installed with `root`.
 
-The package also provides [example implementations using the Simulink wrapper](./examples/Readme.md) (including example training scripts for DQN and PPO agents for the [cart pole implementation in Simulink](./examples/envs/cartpole_simulink/Readme.md)). Use `pip install .[examples]` to install the extra packages required by the examples. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can install the `wandb` extra. 
+> :grey_exclamation: For MATLAB versions < `R2022b`, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which versioning does not conform to PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
+
+### Extras
+
+This package also provides [example implementations using the Simulink wrapper](./examples/Readme.md) (including example training scripts for DQN and PPO agents for the [cart pole implementation in Simulink](./examples/envs/cartpole_simulink/Readme.md)). To try them out, it is recommended to clone the repository and install from source by executing `pip install .[examples]` to install the extra packages required by the examples. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can additionally install the `wandb` extra (`pip install .[examples, wandb]`).
 
 This package is using the [Black code formatter](https://black.readthedocs.io/en/stable/) and [Ruff linter](https://github.com/charliermarsh/ruff) for development. Therefore, the `dev` extra is defining these as dependencies.
 
-For a full installation use `pip install .[all]`.
+For a full installation from source use `pip install .[all]`.
 
 > :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[all]"`
-
-### MATLAB Engine for Python
-
-A MATLAB instance is needed to run the Simulink models. MATLAB provides an installable Python module (`matlab.engine`) locally to interact with a background instance of a locally installed MATLAB. The installation instructions for the MATLAB module can be found [here](https://de.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html).
-
-When using a Python environment you can use the following steps to install the MATLAB Python engine.
-
-```bash
-<activate your environment here>
-cd <matlab root>/extern/engines/python
-sudo $(which python) setup.py install
-```
-
-Under Linux, `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`.
-
-In the future, a PyPI package of the MATLAB engine will be available which will make setup easier.
 
 ### Simulink Gym Block Library
 
