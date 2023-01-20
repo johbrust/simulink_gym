@@ -1,9 +1,18 @@
+# File formats:
 slprj
 *.slxc
 simulink_gym.egg-info
 .vscode
 *.pyc
 *.slx.r*
+
+# Logs:
 *logs*
 *wandb*
+
+# Build:
 build/*
+
+# Coverage files:
+.coverage
+cov_html/*

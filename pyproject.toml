@@ -20,11 +20,13 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-dev = ["black", "ruff"]
+dev = ["black", "ruff", "pytest", "pytest-cov"]
 wandb = ["wandb"]
 examples = ["stable-baselines3", "rich", "tqdm", "tensorboard", "notebook"]
 all = ["black",
        "ruff",
+       "pytest",
+       "pytest-cov",
        "wandb",
        "stable-baselines3",
        "rich",
