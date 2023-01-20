@@ -1,6 +1,7 @@
 from simulink_gym import SimulinkEnv, Observation
 from gym.spaces import Box
 import numpy as np
+import pytest
 
 obs = Observation(
     name="test_obs",
@@ -31,3 +32,24 @@ def test_observation_value_setter():
 
 def test_observation_initial_value():
     assert obs.initial_value == 0.5
+
+
+def test_observation_initial_value_above_range():
+    with pytest.raises(ValueError, match=r".* not inside space limits .*"):
+        obs.initial_value = 1.5
+
+
+def test_observation_initial_value_below_range():
+    with pytest.raises(ValueError, match=r".* not inside space limits .*"):
+        obs.initial_value = -0.5
+
+
+def test_observation_resample_initial_value():
+    old_value = obs.initial_value
+    obs.resample_initial_value()
+    assert not (old_value == obs.initial_value)
+
+
+def test_observation_reset_initial_value():
+    # TODO: Only possible with running MATLAB session
+    pass
