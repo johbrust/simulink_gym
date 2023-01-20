@@ -14,5 +14,6 @@ simulink_gym.egg-info
 build/*
 
 # Coverage files:
-.coverage
+**.coverage
 cov_html/*
+**coverage.lcov
