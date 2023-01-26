@@ -45,6 +45,20 @@ packages = ["simulink_gym", "simulink_gym.utils", "simulink_block_lib"]
 [tool.setuptools.dynamic]
 version = {attr = "simulink_gym.__version__"}
 
+[tool.ruff]
+line-length = 88
+
+select = [
+    "E",        # pycodestyle errors
+    "F",        # Pyflakes
+    "I001",     # isort
+    "PIE790",   # Unnecessary pass statements
+    "D10",      # Missing docstrings
+    "D20",      # Docstring style (blank lines, indentation)
+    "D213",     # Multi-line docstring summary should start at the second line
+    "D400",     # First line should end with a period
+]
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
