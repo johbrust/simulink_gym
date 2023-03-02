@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Simulink Gym
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Johannes
+    family-names: Brust
+    email: johannes.brust@dfki.de
+    affiliation: DFKI
+    orcid: 'https://orcid.org/0000-0002-0615-6183'
+repository-code: 'https://github.com/johbrust/simulink_gym'
+abstract: A wrapper for using Simulink models as Gym environments.
+keywords:
+  - Simulink
+  - Gym
+  - Reinforcement Learning
+  - MATLAB
+  - Python
+license: MIT
