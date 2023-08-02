@@ -6,7 +6,8 @@ This wrapper establishes the [Gym environment interface](https://www.gymlibrary.
 
 This wrapper uses Gym version 0.21.0 for easy usage with established RL libraries such as [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/index.html) or [rllib](https://www.ray.io/rllib).
 
-> :grey_exclamation: The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, [this wrapper will also be updated](https://github.com/johbrust/simulink_gym/issues/11).
+> [!NOTE]
+> The Gym library currently undergoes breaking changes in the newest versions. Once the RL libraries are switching to the newer Gym interface, [this wrapper will also be updated](https://github.com/johbrust/simulink_gym/issues/11).
 
 ## How it works
 
@@ -18,7 +19,8 @@ The TCP/IP communication is established via respective Simulink blocks and match
 
 The wrapper provides the necessary methods to create this derived environment without the user having to implement the TCP/IP communication. Similar to the usual Gym environment implementations, the user only has to define the action and observation/state space as well as the individual `reset` and `step` methods.
 
-> :grey_exclamation: Initializing an environment object takes a few seconds due to the starting of MATLAB in the background and the creation of the simulation object ([`SimulationInput` object](https://de.mathworks.com/help/simulink/slref/simulink.simulationinput-class.html)). Also, the first `reset(...)` takes substantially longer than any consecutive `reset(...)`.
+> [!NOTE]
+> Initializing an environment object takes a few seconds due to the starting of MATLAB in the background and the creation of the simulation object ([`SimulationInput` object](https://de.mathworks.com/help/simulink/slref/simulink.simulationinput-class.html)). Also, the first `reset(...)` takes substantially longer than any consecutive `reset(...)`.
 
 ## Setup
 
@@ -40,7 +42,8 @@ pip install matlabengine
 
 Under Linux, `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`. The macro `$(which python)` ensures the usage of the right Python executable in case you are using (and already activated) a Python environment. The `sudo` is required since MATLAB is installed with `root`.
 
-> :grey_exclamation: For MATLAB versions < `R2022b`, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which versioning does not conform to PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
+> [!WARNING]
+> For MATLAB versions < `R2022b`, the usage of this package inside [Poetry](https://python-poetry.org/) or similarly elaborate environment management tools (e.g., [PDM](https://pdm.fming.dev/)) will break due to the dependency on the [MATLAB Engine for Python](#matlab-engine-for-python), which versioning does not conform to PEP 440 as required by Poetry and PDM. This is no issue when using a simpler environment management tool (e.g., `virtualenv`).
 
 ### Extras
 
@@ -50,7 +53,8 @@ This package is using the [Black code formatter](https://black.readthedocs.io/en
 
 For a full installation from source use `pip install .[all]`.
 
-> :grey_exclamation: Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[all]"`
+> [!IMPORTANT]
+> Don't forget to use quotes if you are using `zsh`: e.g., `pip install ".[all]"`
 
 ### Simulink Gym Block Library
 
@@ -68,7 +72,8 @@ Setting parameter values of the model through the wrapper can be done in two dif
 
 Model workspace variables are the recommended way to make general block settings, like step sizes, available for the wrapper.
 
-> :grey_exclamation: For creating a model workspace variable, you can use the [Model Explorer](https://de.mathworks.com/help/simulink/slref/modelexplorer.html), which can be opened with `CTRL + H` from the Simulink model editor.
+> [!NOTE]
+> For creating a model workspace variable, you can use the [Model Explorer](https://de.mathworks.com/help/simulink/slref/modelexplorer.html), which can be opened with `CTRL + H` from the Simulink model editor.
 
 Check [Model Debugging](#model-debugging) for information on how to debug the Simulink model during the model creation process.
 
@@ -86,7 +91,8 @@ The `Observations` object of the environment is a list-like object with the orde
 
 Since observation values are reset after an episode, information about the corresponding blocks or workspace variable have to be provided. For block parameters, the wrapper can access these through the path of the block value which is given by the template `<model name>/<subsystem 0>/.../<subsystem n>/<block name>/<parameter name>` for a block buried in `n` subsystems.
 
-> :grey_exclamation: Block parameter names don't always match the description in the block mask! Therefore, get the correct parameter name from the Simulink documentation and not from the mask!
+> [!WARNING]
+> Block parameter names don't always match the description in the block mask! Therefore, get the correct parameter name from the Simulink documentation and not from the mask!
 
 #### Reset and Step Methods
 
@@ -112,7 +118,8 @@ An environment complying with the Gym interface returns the `done` flag when the
 
 The known issues below could not be fixed due to the lack of knowledge about the exact cause. Despite these known issues, there are fixes known to avoid these issues, which are given with each issue.
 
-> :grey_exclamation: If you encounter issues not listed below, please create a new issue or even a pull request if you also already found the fix!
+> [!IMPORTANT]
+> If you encounter issues not listed below, please create a new issue or even a pull request if you also already found the fix!
 
 - It sometimes can be observed that after a while two sets of output data are received from the Simulink model when only one action was sent. It is assumed that this is causes by some timing issues of the TCP/IP communication in combination with the update order of the model.
 
