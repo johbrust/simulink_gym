@@ -47,7 +47,7 @@ Under Linux, `<matlab root>` usually is `/usr/local/MATLAB/<MATLAB version>`. Th
 
 ### Extras
 
-This package also provides [example implementations using the Simulink wrapper](./examples/Readme.md) (including example training scripts for DQN and PPO agents for the [cart pole implementation in Simulink](./examples/envs/cartpole_simulink/Readme.md)). To try them out, it is recommended to clone the repository and install from source by executing `pip install .[examples]` to install the extra packages required by the examples. If you are using [Weights & Biases](https://wandb.ai) for experiment tracking, you can additionally install the `wandb` extra (`pip install .[examples, wandb]`).
+This package also provides [example implementations using the Simulink wrapper](./examples/Readme.md) (including example training scripts for DQN and PPO agents for the [cart pole implementation in Simulink](./examples/envs/cartpole_simulink/Readme.md)). To try them out, it is recommended to clone the repository and install from source by executing `pip install .[examples]` to install the extra packages required by the examples.
 
 This package is using the [Black code formatter](https://black.readthedocs.io/en/stable/) and [Ruff linter](https://github.com/charliermarsh/ruff) for development. Therefore, the `dev` extra is defining these as dependencies.
 

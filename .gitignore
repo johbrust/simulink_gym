@@ -5,5 +5,4 @@ simulink_gym.egg-info
 *.pyc
 *.slx.r*
 *logs*
-*wandb*
 build/*

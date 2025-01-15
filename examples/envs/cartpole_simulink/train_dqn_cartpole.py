@@ -19,7 +19,6 @@ def main():
     # General:
     save_policy = args.save_policy
     verbose = args.verbose
-    wb = args.wandb
     benchmark = args.benchmark
     # Training:
     total_timesteps = args.total_timesteps
@@ -62,27 +61,6 @@ def main():
         "gradient_steps": gradient_steps,
     }
 
-    # Weights & Biases (https://wandb.ai):
-    if wb:
-        import wandb
-        from wandb.integration.sb3 import WandbCallback
-
-        os.environ["WANDB_DISABLE_GIT"] = "True"
-        run = wandb.init(
-            project="simulink_gym",
-            group="simulink_cartpole_env" if not benchmark else "gym_cartpole_env",
-            job_type="examples",
-            tags=["DQN"],
-            sync_tensorboard=True,
-            config=config,
-            dir=log_dir,
-            save_code=False,
-            id=run_id,
-        )
-        callback = WandbCallback()
-    else:
-        callback = None
-
     # Create training environment:
     if not benchmark:
         env = CartPoleSimulink()
@@ -115,7 +93,6 @@ def main():
     agent.learn(
         total_timesteps=config["total_timesteps"],
         log_interval=4,
-        callback=callback,
         progress_bar=True,
     )
 
@@ -125,9 +102,6 @@ def main():
         policy.save(f"{log_dir}/learned_policy")
 
     env.close()
-
-    if wb:
-        run.finish()
 
 
 def define_parser():
@@ -265,12 +239,6 @@ def define_parser():
             "Verbosity level: 0 for no output, 1 for info messages "
             "(such as device or wrappers used), 2 for debug messages"
         ),
-    )
-    parser.add_argument(
-        "-w",
-        "--wandb",
-        action="store_true",
-        help="Flag indicating the use of wandb (Weights & Biases)",
     )
     parser.add_argument(
         "-x",
