@@ -1,11 +1,13 @@
 import os
-import matlab.engine
-import gym
-from . import logger, SIMULINK_BLOCK_LIB_PATH
 import threading
-import numpy as np
-from typing import Union
 from pathlib import Path
+from typing import Union
+
+import gymnasium as gym
+import matlab.engine
+import numpy as np
+
+from . import SIMULINK_BLOCK_LIB_PATH, logger
 from .observations import Observations
 from .utils import CommSocket
 
@@ -23,7 +25,8 @@ class SimulinkEnv(gym.Env):
         recv_port: int = 42312,
         model_debug: bool = False,
     ):
-        """Simulink environment base class implementing the Gym interface.
+        """
+        Simulink environment base class implementing the Gym interface.
 
         Parameters:
             model_path: str
@@ -109,7 +112,8 @@ class SimulinkEnv(gym.Env):
 
     @observations.setter
     def observations(self, observations: Observations):
-        """Setter method for observations.
+        """
+        Setter method for observations.
 
         Also sets the necessary observation space.
 
@@ -121,7 +125,8 @@ class SimulinkEnv(gym.Env):
         self.observation_space = self._observations.space
 
     def _reset(self):
-        """Method implementing the generic reset behavior.
+        """
+        Method implementing the generic reset behavior.
 
         This method stops a running simulation, closes and reopens the communication
         sockets and restarts the simulation.
@@ -150,7 +155,8 @@ class SimulinkEnv(gym.Env):
         self.terminated = False
 
     def reset(self):
-        """Method required by the Gym interface to be implemented by the child class.
+        """
+        Method required by the Gym interface to be implemented by the child class.
 
         The child implementation is supposed to call _reset() and has to return
         the state.
@@ -158,7 +164,8 @@ class SimulinkEnv(gym.Env):
         raise NotImplementedError
 
     def sim_step(self, action):
-        """Stepping method for the Simulink model.
+        """
+        Stepping method for the Simulink model.
 
         This method implements the stepping of the Simulink model which should be called
         by the child implementation of the step method.
@@ -214,7 +221,8 @@ class SimulinkEnv(gym.Env):
         return self.state, self.simulation_time, self.truncated, self.terminated
 
     def step(self, action):
-        """Method required by the Gym interface to be implemented by the child class.
+        """
+        Method required by the Gym interface to be implemented by the child class.
 
         The child method is supposed to call sim_step().
 
@@ -228,15 +236,18 @@ class SimulinkEnv(gym.Env):
                 current state of the environment (according to the observation space)
             reward: float
                 reward signal from the environment for reaching current state
-            done: bool
-                flag indicating termination or truncation of the episode
+            terminated: bool
+                flag indicating termination of the episode
+            truncated: bool
+                flag indicating truncation of the episode
             info: dict
                 dict of auxiliary diagnostic information, e.g. simulation time
         """
         raise NotImplementedError
 
     def send_data(self, set_values: np.ndarray, stop: bool = False):
-        """Method for sending the data to the Simulink model.
+        """
+        Method for sending the data to the Simulink model.
 
         Parameters
             set_values: numpy.ndarray
@@ -257,7 +268,8 @@ class SimulinkEnv(gym.Env):
             )
 
     def set_workspace_variable(self, var: str, value: Union[int, float]):
-        """Set variable in model workspace.
+        """
+        Set variable in model workspace.
 
         Variables in the model workspace take precedence over variables in other
         workspaces. If blocks use variables from the workspace, their value can be set
@@ -282,7 +294,8 @@ class SimulinkEnv(gym.Env):
             )
 
     def set_block_parameter(self, path: str, value: Union[int, float]):
-        """Set parameter values of Simulink blocks.
+        """
+        Set parameter values of Simulink blocks.
 
         See:
         https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setblockparameter.html
@@ -306,7 +319,8 @@ class SimulinkEnv(gym.Env):
             )
 
     def set_model_parameter(self, param: str, value: Union[int, float]):
-        """Set Simulink model parameters.
+        """
+        Set Simulink model parameters.
 
         See:
         https://www.mathworks.com/help/simulink/slref/simulink.simulationinput.setmodelparameter.html
@@ -327,7 +341,8 @@ class SimulinkEnv(gym.Env):
             )
 
     def set_initial_values(self):
-        """Set the initial values of the state/observations.
+        """
+        Set the initial values of the state/observations.
 
         Used for resetting the environment.
 
@@ -384,7 +399,8 @@ class SimulinkEnv(gym.Env):
         self.close_sockets()
 
     def render(self):
-        """Render method recommended by the Gym interface.
+        """
+        Render method recommended by the Gym interface.
 
         Since Simulink models don't share a common representation suitable for rendering
         such a method is not possible to implement.

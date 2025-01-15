@@ -1,21 +1,22 @@
-import threading
-import socket
-from .. import logger
 import array
-import numpy as np
+import socket
 import struct
+import threading
+
+import numpy as np
+
+from .. import logger
 
 
 class CommSocket:
-    """Class defining the sockets necessary for communication with the Simulink
-    simulation.
-    """
+
+    """Class defining the sockets for communication with the Simulink simulation."""
 
     HOST = "localhost"
 
     def __init__(self, port: int, name: str = None):
-        """Class defining the sockets necessary for communication with the Simulink
-        simulation.
+        """
+        Class defining the sockets for communication with the Simulink simulation.
 
         Parameters:
             port: int
@@ -31,7 +32,8 @@ class CommSocket:
         self.connect_socket_thread = threading.Thread()
 
     def _open_socket(self, timeout=300):
-        """Method for opening the socket and waiting for connection.
+        """
+        Method for opening the socket and waiting for connection.
 
         Parameters:
             timeout, default: 300 s
@@ -69,7 +71,8 @@ class CommSocket:
             logger.error(f"{self._debug_prefix}Socket already opened or connected")
 
     def receive(self):
-        """Method for receiving data from the simulation.
+        """
+        Method for receiving data from the simulation.
 
         Returns:
             raw data received over the socket
@@ -85,7 +88,8 @@ class CommSocket:
             return None
 
     def send_data(self, set_values: np.ndarray, stop: bool = False):
-        """Method for sending data over the socket.
+        """
+        Method for sending data over the socket.
 
         Parameters:
             set_values: numpy.ndarray
@@ -132,7 +136,8 @@ class CommSocket:
         return self.connection is not None and not self.connect_socket_thread.is_alive()
 
     def wait_for_connection(self, timeout: float = None):
-        """Method for waiting for connection.
+        """
+        Method for waiting for connection.
 
         Parameters:
             timeout: float, default: None

@@ -1,10 +1,13 @@
-from gym.spaces import Box
-from typing import Any, Callable, Union, List
+from typing import Any, Callable, List, Union
+
 import numpy as np
+from gymnasium.spaces import Box
+
 from . import logger
 
 
 class Observation:
+    
     """Class for representation of environment observations."""
 
     def __init__(
@@ -16,7 +19,8 @@ class Observation:
         value_setter: Callable[[str, Union[int, float]], Any],
         initial_value: Union[int, float] = None,
     ):
-        """Class representing environment observations.
+        """
+        Class representing environment observations.
 
         Block parameter values can be either defined directly in the block, if the value
         path is available programmatically (check MATLAB/Simulink documentation for that
@@ -70,7 +74,7 @@ class Observation:
 
     @initial_value.setter
     def initial_value(self, value):
-        """Set method for the initial value"""
+        """Set method for the initial value."""
         logger.debug(f"Setting {self.name} to {value}")
         self._check_initial_value(value)
         self._initial_value = value
@@ -85,10 +89,12 @@ class Observation:
 
 
 class Observations:
+
     """Class representing multiple environment observations as a list."""
 
     def __init__(self, observations: List[Observation]):
-        """Class representing multiple environment observations as a list.
+        """
+        Class representing multiple environment observations as a list.
 
         Parameters:
             observations: list of observations
@@ -133,7 +139,7 @@ class Observations:
 
     @initial_state.setter
     def initial_state(self, values: np.ndarray):
-        """Set method for the initial state"""
+        """Set method for the initial state."""
         if values.shape == self.space.shape:
             for index, observation in enumerate(self._observations):
                 observation.initial_value = values[index]

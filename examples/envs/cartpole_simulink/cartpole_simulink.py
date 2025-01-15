@@ -1,13 +1,16 @@
-from simulink_gym import SimulinkEnv, Observation, Observations
-from gym.spaces import Discrete
-from pathlib import Path
-import numpy as np
 import math
+from pathlib import Path
+
+import numpy as np
+from gymnasium.spaces import Discrete
+
+from simulink_gym import Observation, Observations, SimulinkEnv
 
 
 # Define example environment:
 class CartPoleSimulink(SimulinkEnv):
-    """Classic Cart Pole Control Environment implemented in Matlab/Simulink.
+    """
+    Classic Cart Pole Control Environment implemented in Matlab/Simulink.
 
     With Simulink solver settings matching the Gym implementation this environment
     produces identical trajectories (up to numerical accuracy).
@@ -41,7 +44,8 @@ class CartPoleSimulink(SimulinkEnv):
         step_size: float = 0.02,
         model_debug: bool = False,
     ):
-        """Simulink implementation of the classic Cart Pole environment.
+        """
+        Simulink implementation of the classic Cart Pole environment.
 
         Parameters:
             stop_time: float, default 10
@@ -65,38 +69,36 @@ class CartPoleSimulink(SimulinkEnv):
         self.max_cart_position = 2.4
         max_pole_angle_deg = 12
         self.max_pole_angle_rad = max_pole_angle_deg * math.pi / 180.0
-        self.observations = Observations(
-            [
-                Observation(
-                    "pos",
-                    -self.max_cart_position * 2.0,
-                    self.max_cart_position * 2.0,
-                    f"{self.env_name}/Integrator_position/InitialCondition",
-                    self.set_block_parameter,
-                ),
-                Observation(
-                    "vel",
-                    -np.inf,
-                    np.inf,
-                    f"{self.env_name}/Integrator_speed/InitialCondition",
-                    self.set_block_parameter,
-                ),
-                Observation(
-                    "theta",
-                    -self.max_pole_angle_rad * 2.0,
-                    self.max_pole_angle_rad * 2.0,
-                    f"{self.env_name}/Integrator_theta/InitialCondition",
-                    self.set_block_parameter,
-                ),
-                Observation(
-                    "omega",
-                    -np.inf,
-                    np.inf,
-                    f"{self.env_name}/Integrator_omega/InitialCondition",
-                    self.set_block_parameter,
-                ),
-            ]
-        )
+        self.observations = Observations([
+            Observation(
+                "pos",
+                -self.max_cart_position * 2.0,
+                self.max_cart_position * 2.0,
+                f"{self.env_name}/Integrator_position/InitialCondition",
+                self.set_block_parameter,
+            ),
+            Observation(
+                "vel",
+                -np.inf,
+                np.inf,
+                f"{self.env_name}/Integrator_speed/InitialCondition",
+                self.set_block_parameter,
+            ),
+            Observation(
+                "theta",
+                -self.max_pole_angle_rad * 2.0,
+                self.max_pole_angle_rad * 2.0,
+                f"{self.env_name}/Integrator_theta/InitialCondition",
+                self.set_block_parameter,
+            ),
+            Observation(
+                "omega",
+                -np.inf,
+                np.inf,
+                f"{self.env_name}/Integrator_omega/InitialCondition",
+                self.set_block_parameter,
+            ),
+        ])
 
         # Get initial state from defined observations:
         self.state = self.observations.initial_state
