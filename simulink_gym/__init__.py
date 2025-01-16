@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """Simulink Gym: Gym Interface Wrapper for Simulink Models."""
 
 __version__ = "1.0.0"
@@ -9,13 +10,17 @@ SIMULINK_BLOCK_LIB_PATH = (
     Path(__file__).parent.parent.absolute().joinpath("simulink_block_lib")
 )
 
-from gymnasium import (  # noqa: E402
-    logger,
-    spaces,
-)
+import sys
 
-from .environment import SimulinkEnv  # noqa: E402
-from .observations import Observation, Observations  # noqa: E402
+from gymnasium import spaces
+from loguru import logger
+
+from .environment import SimulinkEnv
+from .observations import Observation, Observations
+
+# Set logging level to INFO:
+logger.remove()
+logger.add(sys.stderr, level="INFO")
 
 __all__ = [
     logger,

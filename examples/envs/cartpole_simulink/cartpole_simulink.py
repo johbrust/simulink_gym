@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from gymnasium.spaces import Discrete
@@ -107,7 +108,7 @@ class CartPoleSimulink(SimulinkEnv):
         self.set_model_parameter("StopTime", stop_time)
         self.set_workspace_variable("step_size", step_size)
 
-    def reset(self):
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None):
         # Resample initial state:
         self.observations.initial_state = np.random.uniform(
             low=-0.05, high=0.05, size=(4,)
@@ -117,7 +118,7 @@ class CartPoleSimulink(SimulinkEnv):
         super()._reset()
 
         # Return reshaped state. Needed for use as tf.model input:
-        return self.state
+        return self.state, {"simulation time [s]": 0}
 
     def step(self, action):
         """Method for stepping the simulation."""
@@ -129,9 +130,8 @@ class CartPoleSimulink(SimulinkEnv):
         # Check all termination conditions:
         current_pos = state[0]
         current_theta = state[2]
-        done = bool(
-            terminated
-            or truncated
+        truncated = bool(
+            truncated
             or current_pos < -self.max_cart_position
             or current_pos > self.max_cart_position
             or current_theta < -self.max_pole_angle_rad
@@ -143,4 +143,4 @@ class CartPoleSimulink(SimulinkEnv):
 
         info = {"simulation time [s]": simulation_time}
 
-        return state, reward, done, info
+        return state, reward, terminated, truncated, info

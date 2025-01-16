@@ -14,14 +14,21 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
-    "gymnasium>=0.29.1",
+    "gymnasium>=1.0.0",
+    "loguru>=0.7.3",
     "matlabengine>=24.2.2",
     "numpy",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-examples = ["stable-baselines3", "rich", "tqdm", "tensorboard", "notebook"]
+examples = [
+    "stable-baselines3>=2.4.1",
+    "rich",
+    "tqdm",
+    "tensorboard",
+    "notebook",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/johbrust/simulink_gym"

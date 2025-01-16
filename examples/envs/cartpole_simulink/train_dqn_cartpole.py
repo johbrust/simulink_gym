@@ -1,15 +1,16 @@
-import os
 import argparse
-import string
 import random
+import string
+from datetime import datetime
+from pathlib import Path
+
 from cartpole_simulink import CartPoleSimulink
 from stable_baselines3 import DQN
-from pathlib import Path
-from datetime import datetime
 
 
 def main():
-    """Training a DQN agent on the cartpole environment.
+    """
+    Training a DQN agent on the cartpole environment.
 
     Run 'python train_dqn_cartpole.py -h' for function documentation.
     """
@@ -65,7 +66,7 @@ def main():
     if not benchmark:
         env = CartPoleSimulink()
     else:
-        import gym
+        import gymnasium as gym
 
         env = gym.make("CartPole-v1")
 

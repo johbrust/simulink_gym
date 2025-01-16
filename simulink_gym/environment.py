@@ -1,7 +1,7 @@
 import os
 import threading
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 import gymnasium as gym
 import matlab.engine
@@ -154,12 +154,12 @@ class SimulinkEnv(gym.Env):
         self.truncated = False
         self.terminated = False
 
-    def reset(self):
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None):
         """
         Method required by the Gym interface to be implemented by the child class.
 
         The child implementation is supposed to call _reset() and has to return
-        the state.
+        the state and info dictionary.
         """
         raise NotImplementedError
 
