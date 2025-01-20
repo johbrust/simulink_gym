@@ -114,9 +114,8 @@ class CartPoleSimscape(SimulinkEnv):
         # Check all termination conditions:
         current_pos = state[0]
         current_theta = state[2]
-        done = bool(
-            terminated
-            or truncated
+        truncated = bool(
+            truncated
             or current_pos < -self.max_cart_position
             or current_pos > self.max_cart_position
             or current_theta < -self.max_pole_angle_rad
@@ -128,4 +127,4 @@ class CartPoleSimscape(SimulinkEnv):
 
         info = {"simulation time [s]": simulation_time}
 
-        return state, reward, done, info
+        return state, reward, terminated, truncated, info
