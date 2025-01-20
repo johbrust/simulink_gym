@@ -53,7 +53,7 @@ def main():
     if not benchmark:
         env = CartPoleSimulink()
     else:
-        import gym
+        import gymnasium as gym
 
         env = gym.make("CartPole-v1")
 

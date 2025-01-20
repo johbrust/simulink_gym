@@ -2,7 +2,7 @@ from simulink_gym import SimulinkEnv, Observation, Observations
 from gym.spaces import Discrete
 from pathlib import Path
 import numpy as np
-import math
+from gymnasium.spaces import Discrete
 
 
 # Define example environment:
@@ -92,7 +92,20 @@ class CartPoleSimscape(SimulinkEnv):
         self.set_model_parameter("StopTime", stop_time)
         self.set_workspace_variable("step_size", step_size)
 
-    def reset(self):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
+        """
+        Reset the environment and return the initial state.
+
+        Args:
+            seed: seed for random number generation, default None
+            options: options for resetting the environment, default None
+
+        Returns:
+            state: initial state sampled randomly from the observation space
+            info: dict of auxiliary information
+        """
         # Resample initial state:
         self.observations.initial_state = np.random.uniform(
             low=-0.05, high=0.05, size=(4,)
@@ -102,7 +115,7 @@ class CartPoleSimscape(SimulinkEnv):
         super()._reset()
 
         # Return reshaped state. Needed for use as tf.model input:
-        return self.state
+        return self.state, {"simulation time [s]": 0}
 
     def step(self, action):
         """Method for stepping the simulation."""
