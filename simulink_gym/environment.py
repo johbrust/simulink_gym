@@ -35,7 +35,11 @@ class SimulinkEnv(gym.Env):
             send_port: TCP/IP port for sending, default 42313
             recv_port: TCP/IP port for receiving, default 42312
             model_debug: flag for debugging simulink model files (.slx), default: False
-        """
+
+        Raises:
+            ValueError: if the model file does not exist
+            RuntimeError: if the Matlab engine cannot be started
+        """       
         self.model_path = Path(model_path)
         if not self.model_path.exists():
             # Try as relative path:

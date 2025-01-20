@@ -38,6 +38,9 @@ class CommSocket:
 
         Args:
             timeout: timeout for waiting for connection, default: 300 s
+
+        Raises:
+            TimeoutError: if the socket does not connect within the specified timeout
         """
         if self.is_connected():
             logger.info(f"{self._debug_prefix}Socket already connected")
