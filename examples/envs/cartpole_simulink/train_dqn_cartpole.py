@@ -1,3 +1,5 @@
+"""Training of a DQN agent on the Simulink cartpole environment."""
+
 import argparse
 import random
 import string

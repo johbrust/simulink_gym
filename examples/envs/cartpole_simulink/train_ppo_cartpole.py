@@ -1,15 +1,18 @@
-import os
+"""Training of a PPO agent on the Simulink cartpole environment."""
+
 import argparse
-import string
 import random
+import string
+from datetime import datetime
+from pathlib import Path
+
 from cartpole_simulink import CartPoleSimulink
 from stable_baselines3 import PPO
-from pathlib import Path
-from datetime import datetime
 
 
 def main():
-    """Training a PPO agent on the cartpole environment.
+    """
+    Training a PPO agent on the cartpole environment.
 
     Run 'python train_ppo_cartpole.py -h' for function documentation.
     """

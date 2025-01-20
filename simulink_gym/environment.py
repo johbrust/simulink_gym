@@ -1,3 +1,5 @@
+"""Simulink model environment wrapper implementing the Gym interface."""
+
 import os
 import threading
 from pathlib import Path
@@ -28,15 +30,11 @@ class SimulinkEnv(gym.Env):
         """
         Simulink environment base class implementing the Gym interface.
 
-        Parameters:
-            model_path: str
-                path to the model file
-            send_port: int, default 42313
-                TCP/IP port for sending
-            recv_port: int, default 42312
-                TCP/IP port for receiving
-            model_debug: bool, default: False
-                flag for debugging simulink model files (.slx)
+        Args:
+            model_path: path to the model file
+            send_port: TCP/IP port for sending, default 42313
+            recv_port: TCP/IP port for receiving, default 42312
+            model_debug: flag for debugging simulink model files (.slx), default: False
         """
         self.model_path = Path(model_path)
         if not self.model_path.exists():
@@ -107,7 +105,11 @@ class SimulinkEnv(gym.Env):
 
     @property
     def observations(self):
-        """Getter method for observations."""
+        """
+        Getter method for observations.
+
+        Returns: Observations object defining the observations
+        """
         return self._observations
 
     @observations.setter
@@ -117,9 +119,8 @@ class SimulinkEnv(gym.Env):
 
         Also sets the necessary observation space.
 
-        Parameter:
-            observations: Observations
-                Observations object defining the observations
+        Args:
+            observations: Observations object defining the observations
         """
         self._observations = observations
         self.observation_space = self._observations.space
@@ -154,16 +155,26 @@ class SimulinkEnv(gym.Env):
         self.truncated = False
         self.terminated = False
 
-    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """
         Method required by the Gym interface to be implemented by the child class.
 
         The child implementation is supposed to call _reset() and has to return
         the state and info dictionary.
+
+        Args:
+            seed: seed for random number generation, default None
+            options: options for resetting the environment, default None
+
+        Returns:
+            state: initial state sampled randomly from the observation space
+            info: dict of auxiliary information
         """
         raise NotImplementedError
 
-    def sim_step(self, action):
+    def sim_step(self, action) -> tuple[np.ndarray, float, bool, bool]:
         """
         Stepping method for the Simulink model.
 
@@ -176,15 +187,11 @@ class SimulinkEnv(gym.Env):
                 match the defined action space
 
         Returns:
-            state: numpy.ndarray
-                current state of the environment (according to the observation space)
-            simulation_time: float
-                current simulation time in seconds
-            truncated: bool
-                indicator for truncation condition (ending despite not reaching a
+            state: current state of the environment (according to the observation space)
+            simulation_time: current simulation time in seconds
+            truncated: indicator for truncation condition (ending despite not reaching a
                 terminal state)
-            terminated: bool
-                indicator for reaching a terminal state
+            terminated: indicator for reaching a terminal state
         """
         if self.model_debug or self.simulation_thread.is_alive():
             # Check validity of action:
@@ -220,28 +227,25 @@ class SimulinkEnv(gym.Env):
 
         return self.state, self.simulation_time, self.truncated, self.terminated
 
-    def step(self, action):
+    def step(
+        self, action
+    ) -> tuple[np.ndarray, Union[int, float], bool, bool, dict[str, Any]]:
         """
         Method required by the Gym interface to be implemented by the child class.
 
         The child method is supposed to call sim_step().
 
-        Parameters:
-            action
-                action to be executed at the beginning of next simulation step, needs to
-                match the defined action space
+        Args:
+            action: action to be executed at the beginning of next simulation step,
+                needs to match the defined action space
 
         Returns:
-            state:
-                current state of the environment (according to the observation space)
-            reward: float
-                reward signal from the environment for reaching current state
-            terminated: bool
-                flag indicating termination of the episode
-            truncated: bool
-                flag indicating truncation of the episode
-            info: dict
-                dict of auxiliary diagnostic information, e.g. simulation time
+            state: current state of the environment (according to the observation space)
+            reward: numerical reward signal from the environment for reaching current
+                state
+            terminated: flag indicating termination of the episode
+            truncated: flag indicating truncation of the episode
+            info:  dict of auxiliary information, e.g. simulation time
         """
         raise NotImplementedError
 
@@ -250,10 +254,8 @@ class SimulinkEnv(gym.Env):
         Method for sending the data to the Simulink model.
 
         Parameters
-            set_values: numpy.ndarray
-                numpy array containing the data, according to action space
-            stop: bool, default: False
-                flag for stopping the simulation
+            set_values: numpy array containing the data, according to action space
+            stop: flag for stopping the simulation, default: False
         """
         # Check validity of set_values and for running simulation:
         if set_values.shape == self.action_space.shape:
@@ -282,10 +284,8 @@ class SimulinkEnv(gym.Env):
         executed often!
 
         Parameters:
-            var: string
-                variable name
-            value: int or float
-                value of the workspace variable
+            var: variable name
+            value: value of the workspace variable
         """
         # Functionality only available if not in debug mode:
         if not self.model_debug:
@@ -304,10 +304,8 @@ class SimulinkEnv(gym.Env):
         executed often!
 
         Parameters:
-            path: string
-                path of the block parameter
-            value: int or float
-                value of the workspace variable
+            path: path of the block parameter
+            value: value of the workspace variable
         """
         # Functionality only available if not in debug mode:
         if not self.model_debug:
@@ -329,10 +327,8 @@ class SimulinkEnv(gym.Env):
         executed often!
 
         Parameters:
-            param: string
-                parameter name
-            value: int or float
-                value of the model parameter
+            param: parameter name
+            value: value of the model parameter
         """
         # Functionality only available if not in debug mode:
         if not self.model_debug:
@@ -405,4 +401,4 @@ class SimulinkEnv(gym.Env):
         Since Simulink models don't share a common representation suitable for rendering
         such a method is not possible to implement.
         """
-        pass
+        logger.info("Rendering not supported for Simulink models.")

@@ -1,3 +1,5 @@
+"""Simulink implementation of the classic Cart Pole environment."""
+
 import math
 from pathlib import Path
 from typing import Any
@@ -48,13 +50,11 @@ class CartPoleSimulink(SimulinkEnv):
         """
         Simulink implementation of the classic Cart Pole environment.
 
-        Parameters:
-            stop_time: float, default 10
-                maximum simulation duration in seconds
-            step_size: float, default 0.02
-                size of simulation step in seconds
-            model_debug: bool, default False
-                Flag for setting up the model debug mode (see Readme.md for details)
+        Args:
+            stop_time: maximum simulation duration in seconds, default 10
+            step_size: size of simulation step in seconds, default 0.02
+            model_debug: Flag for setting up the model debug mode (see README for
+                details), default False
         """
         super().__init__(
             model_path=Path(__file__)
@@ -70,36 +70,38 @@ class CartPoleSimulink(SimulinkEnv):
         self.max_cart_position = 2.4
         max_pole_angle_deg = 12
         self.max_pole_angle_rad = max_pole_angle_deg * math.pi / 180.0
-        self.observations = Observations([
-            Observation(
-                "pos",
-                -self.max_cart_position * 2.0,
-                self.max_cart_position * 2.0,
-                f"{self.env_name}/Integrator_position/InitialCondition",
-                self.set_block_parameter,
-            ),
-            Observation(
-                "vel",
-                -np.inf,
-                np.inf,
-                f"{self.env_name}/Integrator_speed/InitialCondition",
-                self.set_block_parameter,
-            ),
-            Observation(
-                "theta",
-                -self.max_pole_angle_rad * 2.0,
-                self.max_pole_angle_rad * 2.0,
-                f"{self.env_name}/Integrator_theta/InitialCondition",
-                self.set_block_parameter,
-            ),
-            Observation(
-                "omega",
-                -np.inf,
-                np.inf,
-                f"{self.env_name}/Integrator_omega/InitialCondition",
-                self.set_block_parameter,
-            ),
-        ])
+        self.observations = Observations(
+            [
+                Observation(
+                    "pos",
+                    -self.max_cart_position * 2.0,
+                    self.max_cart_position * 2.0,
+                    f"{self.env_name}/Integrator_position/InitialCondition",
+                    self.set_block_parameter,
+                ),
+                Observation(
+                    "vel",
+                    -np.inf,
+                    np.inf,
+                    f"{self.env_name}/Integrator_speed/InitialCondition",
+                    self.set_block_parameter,
+                ),
+                Observation(
+                    "theta",
+                    -self.max_pole_angle_rad * 2.0,
+                    self.max_pole_angle_rad * 2.0,
+                    f"{self.env_name}/Integrator_theta/InitialCondition",
+                    self.set_block_parameter,
+                ),
+                Observation(
+                    "omega",
+                    -np.inf,
+                    np.inf,
+                    f"{self.env_name}/Integrator_omega/InitialCondition",
+                    self.set_block_parameter,
+                ),
+            ]
+        )
 
         # Get initial state from defined observations:
         self.state = self.observations.initial_state
@@ -108,7 +110,20 @@ class CartPoleSimulink(SimulinkEnv):
         self.set_model_parameter("StopTime", stop_time)
         self.set_workspace_variable("step_size", step_size)
 
-    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
+        """
+        Reset the environment and return the initial state.
+
+        Args:
+            seed: seed for random number generation, default None
+            options: options for resetting the environment, default None
+
+        Returns:
+            state: initial state sampled randomly from the observation space
+            info: dict of auxiliary information
+        """
         # Resample initial state:
         self.observations.initial_state = np.random.uniform(
             low=-0.05, high=0.05, size=(4,)
@@ -120,9 +135,20 @@ class CartPoleSimulink(SimulinkEnv):
         # Return reshaped state. Needed for use as tf.model input:
         return self.state, {"simulation time [s]": 0}
 
-    def step(self, action):
-        """Method for stepping the simulation."""
+    def step(self, action: int) -> tuple[np.ndarray, int, bool, bool, dict[str, Any]]:
+        """
+        Method for stepping the simulation.
 
+        Args:
+            action: action to be performed
+
+        Returns:
+            state: current state after taking the action
+            reward: reward signal for the state
+            terminated: flag indicating termination of the episode
+            truncated: flag indicating truncation condition
+            info: dict of auxiliary information
+        """
         action = int(action)
 
         state, simulation_time, terminated, truncated = self.sim_step(action)

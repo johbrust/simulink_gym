@@ -22,14 +22,15 @@ from .observations import Observation, Observations
 
 def setLoggerLevel(logger, level: Union[str, int]) -> None:
     """
-    Set the logging level of a loguru logger.
+    Set the logging level of a logger.
 
     Args:
-        logger: loguru logger instance
-        level: string or int representing the desired loguru logger level
+        logger: logger instance
+        level: string or int representing the desired logger level
     """
     logger.remove()
     logger.add(sys.stderr, level=level)
+
 
 # Set logging level to INFO:
 setLoggerLevel(logger, level="INFO")

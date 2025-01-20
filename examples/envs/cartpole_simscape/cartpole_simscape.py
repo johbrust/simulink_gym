@@ -1,13 +1,19 @@
-from simulink_gym import SimulinkEnv, Observation, Observations
-from gym.spaces import Discrete
+"""Simscape implementation of the classic Cart Pole environment."""
+
+import math
 from pathlib import Path
+from typing import Any
+
 import numpy as np
 from gymnasium.spaces import Discrete
+
+from simulink_gym import Observation, Observations, SimulinkEnv
 
 
 # Define example environment:
 class CartPoleSimscape(SimulinkEnv):
-    """Classic Cart Pole Control Environment implemented in Matlab/Simulink/Simscape.
+    """
+    Classic Cart Pole Control Environment implemented in Matlab/Simulink/Simscape.
 
     Observation:
         Type: Box(4)
@@ -38,15 +44,14 @@ class CartPoleSimscape(SimulinkEnv):
         step_size: float = 0.02,
         model_debug: bool = False,
     ):
-        """Simscape implementation of the classic Cart Pole environment.
+        """
+        Simscape implementation of the classic Cart Pole environment.
 
-        Parameters:
-            stop_time: float, default 10
-                maximum simulation duration in seconds
-            step_size: float, default 0.02
-                size of simulation step in seconds
-            model_debug: bool, default False
-                Flag for setting up the model debug mode (see Readme.md for details)
+        Args:
+            stop_time: maximum simulation duration in seconds, default 10
+            step_size: size of simulation step in seconds, default 0.02
+            model_debug: Flag for setting up the model debug mode (see README for
+                details), default False
         """
         super().__init__(
             model_path=Path(__file__)
@@ -117,9 +122,20 @@ class CartPoleSimscape(SimulinkEnv):
         # Return reshaped state. Needed for use as tf.model input:
         return self.state, {"simulation time [s]": 0}
 
-    def step(self, action):
-        """Method for stepping the simulation."""
+    def step(self, action: int) -> tuple[np.ndarray, int, bool, bool, dict[str, Any]]:
+        """
+        Method for stepping the simulation.
 
+        Args:
+            action: action to be performed
+
+        Returns:
+            state: current state after taking the action
+            reward: reward signal for the state
+            terminated: flag indicating termination of the episode
+            truncated: flag indicating truncation condition
+            info: dict of auxiliary information
+        """
         action = int(action)
 
         state, simulation_time, terminated, truncated = self.sim_step(action)

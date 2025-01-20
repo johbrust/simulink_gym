@@ -1,3 +1,5 @@
+"""Implementation of the CommSocket class for data exchange with the Simulink model."""
+
 import array
 import socket
 import struct
@@ -9,7 +11,6 @@ from .. import logger
 
 
 class CommSocket:
-
     """Class defining the sockets for communication with the Simulink simulation."""
 
     HOST = "localhost"
@@ -35,9 +36,8 @@ class CommSocket:
         """
         Method for opening the socket and waiting for connection.
 
-        Parameters:
-            timeout, default: 300 s
-                timeout for waiting for connection
+        Args:
+            timeout: timeout for waiting for connection, default: 300 s
         """
         if self.is_connected():
             logger.info(f"{self._debug_prefix}Socket already connected")
@@ -91,11 +91,9 @@ class CommSocket:
         """
         Method for sending data over the socket.
 
-        Parameters:
-            set_values: numpy.ndarray
-                numpy array containing the data
-            stop: bool, default: False
-                flag for stopping the simulation
+        Args:
+            set_values: numpy array containing the data
+            stop: flag for stopping the simulation, default: False
         """
         if self.is_connected():
             set_values = set_values.flatten()
@@ -132,15 +130,19 @@ class CommSocket:
             logger.info(f"{self._debug_prefix}Socket not connected, nothing to close")
 
     def is_connected(self):
-        """Check for connection of the socket."""
+        """
+        Check for connection of the socket.
+
+        Returns:
+            boolean indicating whether the socket is connected
+        """
         return self.connection is not None and not self.connect_socket_thread.is_alive()
 
     def wait_for_connection(self, timeout: float = None):
         """
         Method for waiting for connection.
 
-        Parameters:
-            timeout: float, default: None
-                timeout for the joining of the connection thread
+        Args:
+            timeout: timeout for the joining of the connection thread, default: None
         """
         self.connect_socket_thread.join(timeout=timeout)

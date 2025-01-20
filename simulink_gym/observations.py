@@ -1,3 +1,5 @@
+"""Observations implementations for the Simulink Gym wrapper."""
+
 from typing import Any, Callable, List, Union
 
 import numpy as np
@@ -7,7 +9,6 @@ from . import logger
 
 
 class Observation:
-    
     """Class for representation of environment observations."""
 
     def __init__(
@@ -30,24 +31,18 @@ class Observation:
         variable. Depending on this, set the value_setter method accordingly.
 
         Parameters:
-            name: string
-                name of the observation
-            low: float
-                lower boundary of the observation value, can also be -numpy.inf, used to
-                define the observation space
-            high: float
-                higher boundary of the observation value, can also be numpy.inf, used to
-                define the observation space
-            parameter: string
-                path of the block parameter for setting the initial value (if setting
-                the block value directly) or name of the workspace variable used for the
-                block parameter
-            value_setter: Callable
-                method for setting the initial value, either
+            name: name of the observation
+            low: lower boundary of the observation value, can also be -numpy.inf, used
+                to define the observation space
+            high: higher boundary of the observation value, can also be numpy.inf, used
+                to define the observation space
+            parameter: path of the block parameter for setting the initial value (if
+                setting the block value directly) or name of the workspace variable used
+                for the block parameter
+            value_setter: method for setting the initial value, either
                 SimulinkEnv.set_block_parameter or SimulinkEnv.set_workspace_variable
-            initial_value: int or float, default: None
-                initial value of the observation (see BlockParam.value), the value
-                will be sampled from the observation space if None
+            initial_value: initial value of the observation (see BlockParam.value), the
+                value will be sampled from the observation space if None, default: None
         """
         self.name = name
         self.space = Box(low=low, high=high, shape=(1,), dtype=np.float32)
@@ -57,7 +52,15 @@ class Observation:
         self._value_setter = value_setter
 
     def _check_initial_value(self, value):
-        """Check initial value of observation."""
+        """
+        Check initial value of observation.
+
+        Args:
+            value: initial value to be checked
+        
+        Raises:
+            ValueError: if the initial value is not inside the observation space limits
+        """
         value = np.array(value, ndmin=1, dtype=np.float32)
         if not self.space.contains(value):
             raise ValueError(
@@ -69,12 +72,21 @@ class Observation:
 
     @property
     def initial_value(self):
-        """Initial value of the observation."""
+        """
+        Getter function for initial value of the observation.
+        
+        Returns: initial value of the observation
+        """
         return self._initial_value
 
     @initial_value.setter
     def initial_value(self, value):
-        """Set method for the initial value."""
+        """
+        Setter method for the initial value.
+        
+        Args:
+            value: initial value to be set
+        """
         logger.debug(f"Setting {self.name} to {value}")
         self._check_initial_value(value)
         self._initial_value = value
@@ -89,14 +101,13 @@ class Observation:
 
 
 class Observations:
-
     """Class representing multiple environment observations as a list."""
 
     def __init__(self, observations: List[Observation]):
         """
         Class representing multiple environment observations as a list.
 
-        Parameters:
+        Args:
             observations: list of observations
         """
         self._observations = observations
@@ -139,7 +150,16 @@ class Observations:
 
     @initial_state.setter
     def initial_state(self, values: np.ndarray):
-        """Set method for the initial state."""
+        """
+        Set method for the initial state.
+        
+        Args:
+            values: numpy array containing initial values for all observations
+
+        Raises:
+            ValueError: if the shape of the input values does not match the shape of the
+                observation space
+        """
         if values.shape == self.space.shape:
             for index, observation in enumerate(self._observations):
                 observation.initial_value = values[index]
