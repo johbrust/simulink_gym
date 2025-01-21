@@ -6,11 +6,11 @@ The environment is modelled in `cartpole_simscape.slx` and wrapped in [`cartpole
 
 ## Solver
 
-Like the [Gym implementation](https://github.com/openai/gym/blob/v0.21.0/gym/envs/classic_control/cartpole.py), this model uses a fixed step-size of 0.02 s and the Euler integration method (*ode1 (Euler)* solver).
+Like the [Gymnasium implementation](https://github.com/Farama-Foundation/Gymnasium/blob/08a28d38dab17cb4656cd73517bf894575ce6f1a/gymnasium/envs/classic_control/cartpole.py), this model uses a fixed step-size of 0.02 s and the Euler integration method (*ode1 (Euler)* solver).
 
 ## Action and Observation Space
 
-Like the Gym implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
+Like the Gymnasium implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
 
 The observation space consists of the cart's position and velocity as well as the pole's angle and its angular velocity.
 
@@ -33,3 +33,6 @@ The dynamics of the system are defined by the physical properties of the cart an
 ## Try it out!
 
 Check out the [notebook](./cartpole_simscape.ipynb) to play around with the environment.
+
+> [!NOTE] Dependencies
+> In addition to the [already mentioned](../../../Readme.md#setup) Instrument Control Toolbox you also need [Simscape](https://www.mathworks.com/products/simscape.html) and [Simscape Multibody](https://www.mathworks.com/products/simscape-multibody.html) to run this model.

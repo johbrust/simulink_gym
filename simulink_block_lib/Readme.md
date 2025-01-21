@@ -8,7 +8,7 @@ The block library consists of two blocks defining the communication of the model
 
 ### TCP/IP In Block
 
-This block receives the desired input signal(s). The received data comes in the form of a vector according to the action space definition. Check the [spaces definition of the Gym library](https://www.gymlibrary.dev/api/spaces/) for compatible spaces.
+This block receives the desired input signal(s). The received data comes in the form of a vector according to the action space definition. Check the [spaces definition of the Gymnasium library](https://gymnasium.farama.org/api/spaces/) for compatible spaces.
 
 Depicted below is the block composition inside of the block. The TCP/IP receive block receives the data, which is split afterwards into the input data and a stop signal, which can be used to stop the simulation prematurely.
 
@@ -24,7 +24,7 @@ The input block comes with a mask for specifying all necessary parameters:
 
 ### TCP/IP Out Block
 
-This block sends the desired data back to the wrapper. The data is expected to be in vector form, which, e.g., can be accomplished by [muxing](https://de.mathworks.com/help/simulink/slref/mux.html) all desired signals into the `state` input port.
+This block sends the desired data back to the wrapper. The data is expected to be in vector form, which, e.g., can be accomplished by [muxing](https://www.mathworks.com/help/simulink/slref/mux.html) all desired signals into the `state` input port.
 
 The block is composed of a function block packing the input data and the simulation time stamp and the TCP/IP send block.
 

@@ -6,11 +6,11 @@ The environment is modelled in `cartpole_simulink.slx` and wrapped in [`cartpole
 
 ## Solver
 
-Like the [Gym implementation](https://github.com/openai/gym/blob/v0.21.0/gym/envs/classic_control/cartpole.py), this model uses a fixed step-size of 0.02 s and the Euler integration method (*ode1 (Euler)* solver).
+Like the [Gymnasium implementation](https://github.com/Farama-Foundation/Gymnasium/blob/08a28d38dab17cb4656cd73517bf894575ce6f1a/gymnasium/envs/classic_control/cartpole.py), this model uses a fixed step-size of 0.02 s and the Euler integration method (*ode1 (Euler)* solver).
 
 ## Action and Observation Space
 
-Like the Gym implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
+Like the Gymnasium implementation, this environment has a discrete action space with two actions allowing the agent to push the cart in both directions with a force of 10 N.
 
 The observation space consists of the cart's position and velocity as well as the pole's angle and its angular velocity.
 
@@ -34,4 +34,4 @@ Check out the [notebook](./cartpole_simulink.ipynb) to play around with the envi
 
 ## Training RL Agents
 
-Also included in this directory are two example scripts for training a DQN ([`train_dqn_cartpole.py`](./train_dqn_cartpole.py)) and a PPO ([`train_ppo_cartpole.py`](./train_ppo_cartpole.py)) agent on the cart pole environment implemented in Simulink. The scripts use [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/master/) for the RL algorithms. For additional information on the usage of the example scripts just call them with the `-h` flag (`python train_<algorithm>_cartpole.py -h`).
+Also included in this directory are two example scripts for training a DQN ([`train_dqn_cartpole.py`](./train_dqn_cartpole.py)) and a PPO ([`train_ppo_cartpole.py`](./train_ppo_cartpole.py)) agent on the cart pole environment implemented in Simulink. The scripts use [Stable-Baselines3](https://stable-baselines3.readthedocs.io/en/v2.4.1/) for the RL algorithms. For additional information on the usage of the example scripts just call them with the `-h` flag (`python train_<algorithm>_cartpole.py -h`).
