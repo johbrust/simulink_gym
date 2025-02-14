@@ -129,6 +129,7 @@ class CommSocket:
                 )
             self.connection = None
             self.address = None
+            self.server = None
         else:
             logger.info(f"{self._debug_prefix}Socket not connected, nothing to close")
 
